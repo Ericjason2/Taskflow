@@ -19,11 +19,16 @@ if (
     process.env.DB_PASSWORD,
     {
       host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
+      port: process.env.DB_PORT || 5432,
       dialect: "postgres",
       logging: false,
       pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
-      ssl: { require: true, rejectUnauthorized: false },
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      },
     },
   );
 }

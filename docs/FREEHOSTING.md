@@ -71,13 +71,13 @@ postgresql://user:password@hostname:5432/database
 NODE_ENV = production
 PORT = 5000
 USE_SQLITE = false
-DB_HOST = (voir dans PostgreSQL Service: hostname)
+DB_HOST = dpg-d82iu3jeo5us73f6dung-a
 DB_PORT = 5432
 DB_NAME = taskflow_db
 DB_USER = (voir dans PostgreSQL Service: username)
-DB_PASSWORD = (voir dans PostgreSQL Service: password)
+DB_PASSWORD = taskflow_db_qmuy_user
 JWT_SECRET = changez_moi_vraiment_longue_cle_aleatoire
-CLIENT_URL = https://ton-app.vercel.app
+CLIENT_URL = https://taskflow.vercel.app
 ```
 
 6. ✅ Deploy lancé automatiquement

@@ -6,3 +6,4 @@ COPY server/ .
 RUN mkdir -p uploads
 EXPOSE 5000
 CMD ["node", "index.js"]
+

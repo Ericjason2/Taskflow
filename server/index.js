@@ -103,10 +103,34 @@ io.on("connection", (socket) => {
 
 // Sync DB & start
 const PORT = process.env.PORT || 5000;
-sequelize
-  .sync({ force: false })
-  .then(() => {
+
+async function initializeDB() {
+  try {
+    await sequelize.sync({ force: false });
     console.log("🗄️  Base de données synchronisée");
+
+    // Create default admin if none exists
+    const { User } = require("./models/associations");
+    const adminCount = await User.count({ where: { role: "admin" } });
+
+    if (adminCount === 0) {
+      await User.create({
+        nom: "Admin TaskFlow",
+        email: "admin@taskflow.io",
+        password: "admin123",
+        role: "admin",
+        bio: "Administrateur de la plateforme TaskFlow",
+      });
+      console.log("👤 Compte admin créé: admin@taskflow.io / admin123");
+    }
+  } catch (err) {
+    console.error("❌ Erreur lors de l'initialisation:", err);
+    throw err;
+  }
+}
+
+initializeDB()
+  .then(() => {
     server.listen(PORT, () => {
       console.log(`🚀 Serveur TaskFlow démarré sur http://localhost:${PORT}`);
       console.log(`📡 Socket.io actif`);

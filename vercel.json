@@ -4,7 +4,7 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(?!api|_next|_static)",
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ]

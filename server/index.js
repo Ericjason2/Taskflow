@@ -117,9 +117,11 @@ async function initializeDB() {
     const existingAdmin = await User.findOne({ where: { email: adminEmail } });
 
     if (existingAdmin) {
-      // Update admin password to ensure it's correctly hashed
-      await existingAdmin.update({ password: adminPassword });
-      console.log("👤 Compte admin mis à jour: admin@taskflow.io / admin123");
+      // Update admin password AND role to ensure it's correctly set
+      await existingAdmin.update({ password: adminPassword, role: "admin" });
+      console.log(
+        "👤 Compte admin mis à jour: admin@taskflow.io / admin123 (Rôle: admin)",
+      );
     } else {
       // Create new admin
       await User.create({

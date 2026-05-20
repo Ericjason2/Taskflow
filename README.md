@@ -1,4 +1,4 @@
-# 📋 TaskFlow — Plateforme de Gestion de Projets Collaboratifs
+# TaskFlow — Plateforme de Gestion de Projets Collaboratifs
 
 Une plateforme web (MVP) moderne et intuitive pour gérer des projets en équipe avec une interface collaborative, temps réel, et gestion des tâches avancée.
 
@@ -173,7 +173,7 @@ taskflow/
 │   └── config/               # DB & seed
 │
 └── docs/                      # 📚 Documentation
-    └── README.md              # Cette documentation
+    └── API.md              # Cette documentation
 ```
 
 ### Flux d'Authentification

@@ -109,15 +109,23 @@ async function initializeDB() {
     await sequelize.sync({ force: false });
     console.log("🗄️  Base de données synchronisée");
 
-    // Create default admin if none exists
+    // Create or reset admin account
     const { User } = require("./models/associations");
-    const adminCount = await User.count({ where: { role: "admin" } });
+    const adminEmail = "admin@taskflow.io";
+    const adminPassword = "admin123";
 
-    if (adminCount === 0) {
+    const existingAdmin = await User.findOne({ where: { email: adminEmail } });
+
+    if (existingAdmin) {
+      // Update admin password to ensure it's correctly hashed
+      await existingAdmin.update({ password: adminPassword });
+      console.log("👤 Compte admin mis à jour: admin@taskflow.io / admin123");
+    } else {
+      // Create new admin
       await User.create({
         nom: "Admin TaskFlow",
-        email: "admin@taskflow.io",
-        password: "admin123",
+        email: adminEmail,
+        password: adminPassword,
         role: "admin",
         bio: "Administrateur de la plateforme TaskFlow",
       });

@@ -8,6 +8,14 @@ import {
   Edit2,
   Trash2,
   AlertCircle,
+  Clock,
+  CheckCircle2,
+  Circle,
+  HelpCircle,
+  MessageSquare,
+  Tag,
+  MoreHorizontal,
+  Sparkles,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,17 +23,41 @@ import useProjectStore from "../../store/projectStore";
 import toast from "react-hot-toast";
 
 const COLUMNS = [
-  { id: "todo", label: "À faire", color: "#999999" },
-  { id: "in_progress", label: "En cours", color: "#666666" },
-  { id: "review", label: "En révision", color: "#555555" },
-  { id: "done", label: "Terminé", color: "#333333" },
+  {
+    id: "todo",
+    label: "À faire",
+    icon: Circle,
+    color: "#64748b",
+    badgeClass: "badge-todo",
+  },
+  {
+    id: "in_progress",
+    label: "En cours",
+    icon: Clock,
+    color: "#2563eb",
+    badgeClass: "badge-inprogress",
+  },
+  {
+    id: "review",
+    label: "En révision",
+    icon: HelpCircle,
+    color: "#d97706",
+    badgeClass: "badge-review",
+  },
+  {
+    id: "done",
+    label: "Terminé",
+    icon: CheckCircle2,
+    color: "#16a34a",
+    badgeClass: "badge-done",
+  },
 ];
 
-const PRIO_COLORS = {
-  basse: "#888888",
-  moyenne: "#666666",
-  haute: "#444444",
-  critique: "#000000",
+const PRIORITE_STYLES = {
+  basse: { label: "Basse", bg: "#ecfdf5", color: "#047857", border: "#a7f3d0" },
+  moyenne: { label: "Moyenne", bg: "#f0f9ff", color: "#0369a1", border: "#bae6fd" },
+  haute: { label: "Haute", bg: "#fffbeb", color: "#b45309", border: "#fde68a" },
+  critique: { label: "Critique", bg: "#fef2f2", color: "#b91c1c", border: "#fecaca" },
 };
 
 function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId }) {
@@ -33,8 +65,11 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId }) {
     task.echeance &&
     new Date(task.echeance) < new Date() &&
     task.statut !== "done";
+  const isDone = task.statut === "done";
   const canModify =
     task.cree_par === currentUserId || task.assigne_a === currentUserId;
+
+  const prio = PRIORITE_STYLES[task.priorite] || PRIORITE_STYLES.moyenne;
 
   return (
     <Draggable draggableId={String(task.id)} index={index}>
@@ -42,125 +77,139 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId }) {
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`task-card ${snapshot.isDragging ? "dragging" : ""}`}
+          className={`trello-card ${snapshot.isDragging ? "is-dragging" : ""}`}
         >
-          <div className="task-card-top">
-            <div {...provided.dragHandleProps} className="drag-handle">
-              <GripVertical size={14} />
-            </div>
-            <div
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: PRIO_COLORS[task.priorite],
-                flexShrink: 0,
-              }}
-              title={`Priorité ${task.priorite}`}
-            />
-            <div className="task-card-actions">
-              <button
-                className="task-action-btn"
-                onClick={() => onView(task)}
-                title="Voir"
+          {/* Card Top: Tags & Priority & Quick Actions */}
+          <div className="card-top-bar">
+            <div className="card-labels-wrapper">
+              <span
+                className="prio-chip"
+                style={{
+                  background: prio.bg,
+                  color: prio.color,
+                  borderColor: prio.border,
+                }}
               >
-                <Eye size={13} />
-              </button>
-              {canModify && (
-                <button
-                  className="task-action-btn"
-                  onClick={() => onEdit(task)}
-                  title="Modifier"
-                >
-                  <Edit2 size={13} />
-                </button>
-              )}
-              {canModify && (
-                <button
-                  className="task-action-btn danger"
-                  onClick={() => onDelete(task)}
-                  title="Supprimer"
-                >
-                  <Trash2 size={13} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <p className="task-title" onClick={() => onView(task)}>
-            {task.titre}
-          </p>
-
-          {task.description && (
-            <p className="task-desc">
-              {task.description.slice(0, 80)}
-              {task.description.length > 80 ? "…" : ""}
-            </p>
-          )}
-
-          {task.tags?.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                gap: 4,
-                flexWrap: "wrap",
-                marginTop: 6,
-              }}
-            >
-              {task.tags.slice(0, 3).map((t) => (
                 <span
-                  key={t}
-                  style={{
-                    fontSize: 10,
-                    background: "rgba(0,0,0,0.06)",
-                    color: "#333333",
-                    borderRadius: 100,
-                    padding: "1px 7px",
-                    border: "1px solid rgba(0,0,0,0.1)",
-                  }}
-                >
+                  className="prio-indicator-dot"
+                  style={{ background: prio.color }}
+                />
+                {prio.label}
+              </span>
+
+              {task.tags?.slice(0, 2).map((t) => (
+                <span key={t} className="trello-label-tag">
                   #{t}
                 </span>
               ))}
             </div>
+
+            <div className="card-quick-actions">
+              <button
+                className="card-action-icon"
+                onClick={() => onView(task)}
+                title="Consulter"
+              >
+                <Eye size={13} />
+              </button>
+              {canModify && (
+                <>
+                  <button
+                    className="card-action-icon"
+                    onClick={() => onEdit(task)}
+                    title="Modifier"
+                  >
+                    <Edit2 size={13} />
+                  </button>
+                  <button
+                    className="card-action-icon danger"
+                    onClick={() => onDelete(task)}
+                    title="Supprimer"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </>
+              )}
+              <div {...provided.dragHandleProps} className="drag-grip-handle">
+                <GripVertical size={14} />
+              </div>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h4 className="card-title-text" onClick={() => onView(task)}>
+            {task.titre}
+          </h4>
+
+          {/* Description snippet */}
+          {task.description && (
+            <p className="card-description-snippet">
+              {task.description.slice(0, 85)}
+              {task.description.length > 85 ? "…" : ""}
+            </p>
           )}
 
-          <div className="task-card-footer">
-            {task.assigne ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div className="avatar avatar-sm">
-                  {task.assigne.nom?.[0]?.toUpperCase()}
+          {/* Card Bottom: Metadata, Due Date & Assignee */}
+          <div className="card-bottom-bar">
+            <div className="card-badges-left">
+              {task.echeance && (
+                <div
+                  className={`due-date-pill ${
+                    isDone ? "done" : isOverdue ? "overdue" : "normal"
+                  }`}
+                  title={
+                    isOverdue
+                      ? "Échéance dépassée !"
+                      : `Échéance : ${format(new Date(task.echeance), "dd MMMM yyyy", { locale: fr })}`
+                  }
+                >
+                  {isDone ? (
+                    <CheckCircle2 size={12} />
+                  ) : isOverdue ? (
+                    <AlertCircle size={12} />
+                  ) : (
+                    <Clock size={12} />
+                  )}
+                  <span>
+                    {format(new Date(task.echeance), "dd MMM", { locale: fr })}
+                  </span>
                 </div>
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                  {task.assigne.nom.split(" ")[0]}
+              )}
+
+              {task.commentaires?.length > 0 && (
+                <div className="comment-badge" title="Commentaires">
+                  <MessageSquare size={12} />
+                  <span>{task.commentaires.length}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="card-assignee-right">
+              {task.assigne ? (
+                <div
+                  className="avatar avatar-xs"
+                  title={`Assigné à ${task.assigne.nom}`}
+                >
+                  {task.assigne.avatar ? (
+                    <img
+                      src={task.assigne.avatar}
+                      alt=""
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        borderRadius: "50%",
+                      }}
+                    />
+                  ) : (
+                    task.assigne.nom?.[0]?.toUpperCase()
+                  )}
+                </div>
+              ) : (
+                <span className="unassigned-hint" title="Non assigné">
+                  Libre
                 </span>
-              </div>
-            ) : (
-              <span
-                style={{
-                  fontSize: 11,
-                  color: "var(--text-muted)",
-                  fontStyle: "italic",
-                }}
-              >
-                Non assigné
-              </span>
-            )}
-            {task.echeance && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 11,
-                  color: isOverdue ? "#ef4444" : "var(--text-muted)",
-                }}
-              >
-                {isOverdue && <AlertCircle size={11} />}
-                <Calendar size={11} />
-                {format(new Date(task.echeance), "dd MMM", { locale: fr })}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -194,6 +243,7 @@ export default function KanbanBoard({
     const taskId = parseInt(draggableId);
     const newStatus = destination.droppableId;
 
+    // Optimistic UI update
     const updatedTasks = tasks.map((t) =>
       t.id === taskId ? { ...t, statut: newStatus } : t,
     );
@@ -201,46 +251,51 @@ export default function KanbanBoard({
 
     try {
       await updateTaskStatus(projectId, taskId, newStatus);
-    } catch (_) {
+    } catch {
+      toast.error("Erreur lors du déplacement de la tâche");
       setTasksLocal(tasks);
-      toast.error("Erreur mise à jour statut");
     }
   };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="kanban-board">
+      <div className="trello-board-canvas">
         {COLUMNS.map((col) => {
           const colTasks = getColumnTasks(col.id);
+          const ColIcon = col.icon;
+
           return (
-            <div key={col.id} className="kanban-column">
-              <div className="kanban-column-header">
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: col.color,
-                    }}
+            <div key={col.id} className="trello-list-column">
+              {/* Column Header */}
+              <div className="column-header">
+                <div className="column-title-group">
+                  <ColIcon
+                    size={15}
+                    style={{ color: col.color }}
+                    strokeWidth={2.4}
                   />
-                  <span className="kanban-col-title">{col.label}</span>
-                  <span className="kanban-count">{colTasks.length}</span>
+                  <h3 className="column-title">{col.label}</h3>
+                  <span className="column-counter">{colTasks.length}</span>
                 </div>
+
                 <button
-                  className="btn btn-ghost btn-icon btn-sm"
+                  className="quick-add-col-btn"
                   onClick={() => onAddTask(col.id)}
+                  title="Ajouter une tâche à cette colonne"
                 >
                   <Plus size={15} />
                 </button>
               </div>
 
+              {/* Droppable Area */}
               <Droppable droppableId={col.id}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`kanban-drop-zone ${snapshot.isDraggingOver ? "drag-over" : ""}`}
+                    className={`column-drop-zone ${
+                      snapshot.isDraggingOver ? "is-drag-over" : ""
+                    }`}
                   >
                     {colTasks.map((task, i) => (
                       <TaskCard
@@ -254,50 +309,373 @@ export default function KanbanBoard({
                       />
                     ))}
                     {provided.placeholder}
+
                     {colTasks.length === 0 && !snapshot.isDraggingOver && (
                       <div
-                        className="kanban-empty"
+                        className="empty-column-placeholder"
                         onClick={() => onAddTask(col.id)}
                       >
-                        <Plus size={14} />
-                        <span>Ajouter une tâche</span>
+                        <Plus size={13} />
+                        <span>Ajouter une carte</span>
                       </div>
                     )}
                   </div>
                 )}
               </Droppable>
+
+              {/* Trello "+ Ajouter une carte" Bottom Footer */}
+              <div className="column-footer">
+                <button
+                  className="trello-add-card-btn"
+                  onClick={() => onAddTask(col.id)}
+                >
+                  <Plus size={14} />
+                  <span>Ajouter une carte</span>
+                </button>
+              </div>
             </div>
           );
         })}
       </div>
 
       <style>{`
-        .kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: start; }
-        .kanban-column { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-        .kanban-column-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--bg-elevated); }
-        .kanban-col-title { font-family: var(--font-display); font-size: 13px; font-weight: 700; }
-        .kanban-count { background: var(--bg-overlay); color: var(--text-secondary); border-radius: 100px; padding: 1px 8px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); }
-        .kanban-drop-zone { padding: 12px; min-height: 140px; display: flex; flex-direction: column; gap: 8px; transition: background var(--transition); }
-        .kanban-drop-zone.drag-over { background: var(--accent-glow); }
-        .kanban-empty { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 16px; border: 1px dashed var(--border); border-radius: var(--radius-md); font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all var(--transition); }
-        .kanban-empty:hover { border-color: var(--accent-dim); color: var(--accent); background: var(--accent-glow); }
-        .task-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; gap: 8px; transition: all var(--transition); }
-        .task-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
-        .task-card.dragging { box-shadow: var(--shadow-lg); transform: rotate(1.5deg); border-color: var(--accent-dim); }
-        .task-card-top { display: flex; align-items: center; gap: 6px; }
-        .drag-handle { color: var(--text-muted); cursor: grab; display: flex; }
-        .drag-handle:active { cursor: grabbing; }
-        .task-card-actions { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity var(--transition); }
-        .task-card:hover .task-card-actions { opacity: 1; }
-        .task-action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 3px; border-radius: 4px; display: flex; transition: all var(--transition); }
-        .task-action-btn:hover { background: var(--bg-overlay); color: var(--text-primary); }
-        .task-action-btn.danger:hover { color: #ef4444; }
-        .task-title { font-size: 13px; font-weight: 600; line-height: 1.4; cursor: pointer; }
-        .task-title:hover { color: var(--accent); }
-        .task-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-        .task-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
-        @media (max-width: 1100px) { .kanban-board { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .kanban-board { grid-template-columns: 1fr; } }
+        .trello-board-canvas {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          align-items: flex-start;
+          overflow-x: auto;
+          padding-bottom: 20px;
+        }
+
+        .trello-list-column {
+          background: #f1f5f9;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-lg);
+          display: flex;
+          flex-direction: column;
+          max-height: calc(100vh - 230px);
+          min-width: 260px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+
+        .column-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 14px 10px;
+        }
+
+        .column-title-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .column-title {
+          font-size: 13.5px;
+          font-weight: 600;
+          color: var(--text-primary);
+          letter-spacing: -0.01em;
+        }
+
+        .column-counter {
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--text-muted);
+          background: #ffffff;
+          padding: 1px 7px;
+          border-radius: 9999px;
+          border: 1px solid var(--border);
+        }
+
+        .quick-add-col-btn {
+          width: 26px;
+          height: 26px;
+          border-radius: var(--radius-sm);
+          border: none;
+          background: transparent;
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all var(--transition);
+        }
+
+        .quick-add-col-btn:hover {
+          background: #e2e8f0;
+          color: var(--text-primary);
+        }
+
+        .column-drop-zone {
+          padding: 4px 10px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          min-height: 120px;
+          flex: 1;
+          transition: background var(--transition);
+        }
+
+        .column-drop-zone.is-drag-over {
+          background: rgba(37, 99, 235, 0.05);
+          border-radius: var(--radius-md);
+        }
+
+        /* Trello Cards */
+        .trello-card {
+          background: #ffffff;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-md);
+          padding: 12px;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          cursor: pointer;
+          transition: all var(--transition);
+        }
+
+        .trello-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+          transform: translateY(-1px);
+        }
+
+        .trello-card.is-dragging {
+          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+          transform: rotate(2deg);
+          border-color: var(--accent);
+          background: #ffffff;
+        }
+
+        .card-top-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+        }
+
+        .card-labels-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          flex-wrap: wrap;
+        }
+
+        .prio-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 10.5px;
+          font-weight: 600;
+          padding: 1px 6px;
+          border-radius: 9999px;
+          border: 1px solid transparent;
+        }
+
+        .prio-indicator-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+        }
+
+        .trello-label-tag {
+          font-size: 10px;
+          font-weight: 500;
+          color: var(--text-muted);
+          background: #f1f5f9;
+          padding: 1px 6px;
+          border-radius: 9999px;
+          border: 1px solid var(--border);
+        }
+
+        .card-quick-actions {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          opacity: 0;
+          transition: opacity var(--transition);
+          margin-left: auto;
+        }
+
+        .trello-card:hover .card-quick-actions {
+          opacity: 1;
+        }
+
+        .card-action-icon {
+          width: 22px;
+          height: 22px;
+          border-radius: var(--radius-xs);
+          border: none;
+          background: transparent;
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all var(--transition);
+        }
+
+        .card-action-icon:hover {
+          background: #f1f5f9;
+          color: var(--text-primary);
+        }
+
+        .card-action-icon.danger:hover {
+          background: #fee2e2;
+          color: #ef4444;
+        }
+
+        .drag-grip-handle {
+          color: var(--text-light);
+          cursor: grab;
+          display: flex;
+          align-items: center;
+          padding: 2px;
+        }
+
+        .drag-grip-handle:active {
+          cursor: grabbing;
+        }
+
+        .card-title-text {
+          font-size: 13.5px;
+          font-weight: 600;
+          color: var(--text-primary);
+          line-height: 1.4;
+          letter-spacing: -0.01em;
+        }
+
+        .card-title-text:hover {
+          color: var(--accent);
+        }
+
+        .card-description-snippet {
+          font-size: 12px;
+          color: var(--text-secondary);
+          line-height: 1.45;
+        }
+
+        .card-bottom-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 4px;
+          margin-top: 2px;
+        }
+
+        .card-badges-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .due-date-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 11px;
+          font-weight: 500;
+          padding: 2px 7px;
+          border-radius: var(--radius-sm);
+        }
+
+        .due-date-pill.normal {
+          background: #f8fafc;
+          color: var(--text-muted);
+          border: 1px solid var(--border);
+        }
+
+        .due-date-pill.overdue {
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+          font-weight: 600;
+        }
+
+        .due-date-pill.done {
+          background: #f0fdf4;
+          color: #16a34a;
+          border: 1px solid #bbf7d0;
+        }
+
+        .comment-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          font-size: 11px;
+          color: var(--text-muted);
+        }
+
+        .card-assignee-right {
+          display: flex;
+          align-items: center;
+        }
+
+        .unassigned-hint {
+          font-size: 11px;
+          color: var(--text-light);
+          font-style: italic;
+        }
+
+        .empty-column-placeholder {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 16px 12px;
+          border: 1px dashed #cbd5e1;
+          border-radius: var(--radius-md);
+          font-size: 12px;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all var(--transition);
+          margin: 6px 0;
+        }
+
+        .empty-column-placeholder:hover {
+          border-color: var(--accent);
+          color: var(--accent);
+          background: #eff6ff;
+        }
+
+        .column-footer {
+          padding: 8px 10px 10px;
+        }
+
+        .trello-add-card-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 10px;
+          border-radius: var(--radius-md);
+          border: none;
+          background: transparent;
+          color: var(--text-secondary);
+          font-size: 13px;
+          font-weight: 500;
+          text-align: left;
+          transition: all var(--transition);
+        }
+
+        .trello-add-card-btn:hover {
+          background: #e2e8f0;
+          color: var(--text-primary);
+        }
+
+        @media (max-width: 1120px) {
+          .trello-board-canvas {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
+        @media (max-width: 640px) {
+          .trello-board-canvas {
+            grid-template-columns: 1fr;
+          }
+        }
       `}</style>
     </DragDropContext>
   );

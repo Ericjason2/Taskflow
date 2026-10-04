@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Send, Trash2, Calendar, User, Tag, Clock } from "lucide-react";
+import { X, Send, Trash2, Calendar, User, Tag, Clock, Edit2 } from "lucide-react";
 import { taskAPI } from "../../services/api";
 import useAuthStore from "../../store/authStore";
 import { format } from "date-fns";
@@ -12,12 +12,14 @@ const STATUT_LABELS = {
   review: "En révision",
   done: "Terminé",
 };
+
 const PRIO_COLORS = {
-  basse: "#888888",
-  moyenne: "#666666",
-  haute: "#444444",
-  critique: "#000000",
+  basse: "#10b981",
+  moyenne: "#0284c7",
+  haute: "#f59e0b",
+  critique: "#ef4444",
 };
+
 const PRIO_LABELS = {
   basse: "Basse",
   moyenne: "Moyenne",
@@ -61,7 +63,7 @@ export default function TaskDetail({
       load();
       toast.success("Commentaire ajouté");
     } catch (_) {
-      toast.error("Erreur");
+      toast.error("Erreur lors de l'ajout du commentaire");
     }
     setSending(false);
   };
@@ -70,8 +72,9 @@ export default function TaskDetail({
     try {
       await taskAPI.deleteComment(projectId, taskId, commentId);
       load();
+      toast.success("Commentaire supprimé");
     } catch (_) {
-      toast.error("Erreur");
+      toast.error("Erreur lors de la suppression");
     }
   };
 
@@ -80,36 +83,34 @@ export default function TaskDetail({
       <div className="task-detail-panel" onClick={(e) => e.stopPropagation()}>
         {loading ? (
           <div
-            style={{ display: "flex", justifyContent: "center", padding: 40 }}
+            style={{ display: "flex", justifyContent: "center", padding: 60 }}
           >
             <span className="spinner spinner-lg" />
           </div>
         ) : task ? (
           <>
             <div className="td-header">
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                 <span
                   className={`badge badge-${task.statut === "in_progress" ? "inprogress" : task.statut}`}
+                  style={{ fontSize: 11, padding: "2px 8px" }}
                 >
-                  {STATUT_LABELS[task.statut]}
+                  {STATUT_LABELS[task.statut] || task.statut}
                 </span>
                 <span
-                  className="badge"
-                  style={{
-                    background: `${PRIO_COLORS[task.priorite]}18`,
-                    color: PRIO_COLORS[task.priorite],
-                    border: `1px solid ${PRIO_COLORS[task.priorite]}30`,
-                  }}
+                  className={`badge badge-${task.priorite}`}
+                  style={{ fontSize: 11, padding: "2px 8px" }}
                 >
-                  {PRIO_LABELS[task.priorite]}
+                  {PRIO_LABELS[task.priorite] || task.priorite}
                 </span>
               </div>
-              <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <button
                   className="btn btn-ghost btn-sm"
                   onClick={() => onEdit(task)}
+                  style={{ display: "flex", alignItems: "center", gap: 5 }}
                 >
-                  Modifier
+                  <Edit2 size={13} /> Modifier
                 </button>
                 <button
                   className="btn btn-danger btn-sm"
@@ -117,8 +118,9 @@ export default function TaskDetail({
                     onDelete(task);
                     onClose();
                   }}
+                  style={{ display: "flex", alignItems: "center", gap: 5 }}
                 >
-                  Supprimer
+                  <Trash2 size={13} />
                 </button>
                 <button className="btn btn-ghost btn-icon" onClick={onClose}>
                   <X size={18} />
@@ -136,10 +138,19 @@ export default function TaskDetail({
                 {task.assigne && (
                   <div className="td-meta-item">
                     <User size={14} className="td-meta-icon" />
-                    <div className="avatar avatar-sm">
-                      {task.assigne.nom?.[0]}
+                    <div
+                      className="avatar avatar-sm"
+                      style={{
+                        background: "var(--accent-subtle)",
+                        color: "var(--accent)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {task.assigne.nom?.[0]?.toUpperCase()}
                     </div>
-                    <span>{task.assigne.nom}</span>
+                    <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                      {task.assigne.nom}
+                    </span>
                   </div>
                 )}
                 {task.echeance && (
@@ -155,7 +166,7 @@ export default function TaskDetail({
                 <div className="td-meta-item">
                   <Clock size={14} className="td-meta-icon" />
                   <span>
-                    Créé{" "}
+                    Créé le{" "}
                     {format(new Date(task.createdAt), "dd MMM yyyy", {
                       locale: fr,
                     })}
@@ -164,7 +175,7 @@ export default function TaskDetail({
                 {task.createur && (
                   <div className="td-meta-item">
                     <span style={{ color: "var(--text-muted)" }}>par</span>
-                    <span>{task.createur.nom}</span>
+                    <span style={{ fontWeight: 500 }}>{task.createur.nom}</span>
                   </div>
                 )}
               </div>
@@ -186,12 +197,13 @@ export default function TaskDetail({
                         display: "flex",
                         alignItems: "center",
                         gap: 4,
-                        background: "var(--bg-overlay)",
-                        color: "var(--text-secondary)",
+                        background: "var(--accent-subtle)",
+                        color: "var(--accent)",
                         fontSize: 12,
-                        padding: "3px 10px",
-                        borderRadius: 100,
-                        border: "1px solid var(--border)",
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        border: "1px solid rgba(2, 132, 199, 0.2)",
+                        fontWeight: 500,
                       }}
                     >
                       <Tag size={11} />
@@ -211,7 +223,12 @@ export default function TaskDetail({
                     <div key={c.id} className="td-comment">
                       <div
                         className="avatar avatar-sm"
-                        style={{ flexShrink: 0 }}
+                        style={{
+                          flexShrink: 0,
+                          background: "var(--accent-subtle)",
+                          color: "var(--accent)",
+                          fontWeight: 700,
+                        }}
                       >
                         {c.auteur?.nom?.[0]?.toUpperCase()}
                       </div>
@@ -223,7 +240,7 @@ export default function TaskDetail({
                             alignItems: "center",
                           }}
                         >
-                          <span style={{ fontWeight: 600, fontSize: 13 }}>
+                          <span style={{ fontWeight: 600, fontSize: 13, color: "var(--text-primary)" }}>
                             {c.auteur?.nom}
                           </span>
                           <div
@@ -249,7 +266,7 @@ export default function TaskDetail({
                                 style={{ padding: 2, width: 20, height: 20 }}
                                 onClick={() => removeComment(c.id)}
                               >
-                                <Trash2 size={12} />
+                                <Trash2 size={12} color="#ef4444" />
                               </button>
                             )}
                           </div>
@@ -260,6 +277,7 @@ export default function TaskDetail({
                             color: "var(--text-secondary)",
                             marginTop: 4,
                             lineHeight: 1.5,
+                            margin: "4px 0 0 0",
                           }}
                         >
                           {c.contenu}
@@ -276,18 +294,25 @@ export default function TaskDetail({
                         padding: "20px 0",
                       }}
                     >
-                      Aucun commentaire. Soyez le premier !
+                      Aucun commentaire. Soyez le premier à participer !
                     </p>
                   )}
                 </div>
                 <form onSubmit={sendComment} className="td-comment-form">
-                  <div className="avatar avatar-sm">
+                  <div
+                    className="avatar avatar-sm"
+                    style={{
+                      background: "var(--accent-subtle)",
+                      color: "var(--accent)",
+                      fontWeight: 700,
+                    }}
+                  >
                     {user?.nom?.[0]?.toUpperCase()}
                   </div>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Ajouter un commentaire..."
+                    placeholder="Écrire un commentaire..."
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                   />
@@ -322,20 +347,20 @@ export default function TaskDetail({
         )}
 
         <style>{`
-          .task-detail-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 500; display: flex; justify-content: flex-end; }
-          .task-detail-panel { width: 480px; max-width: 100%; background: #ffffff; border-left: 1px solid var(--border); height: 100%; overflow-y: auto; animation: slideInRight 0.25s ease; display: flex; flex-direction: column; }
+          .task-detail-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 500; display: flex; justify-content: flex-end; }
+          .task-detail-panel { width: 500px; max-width: 100%; background: var(--bg-surface); border-left: 1px solid var(--border); height: 100%; overflow-y: auto; animation: slideInRight 0.25s ease; display: flex; flex-direction: column; box-shadow: var(--shadow-xl); }
           @keyframes slideInRight { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-          .td-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; position: sticky; top: 0; background: #ffffff; z-index: 1; }
-          .td-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; flex: 1; }
-          .td-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1.3; }
-          .td-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
-          .td-meta { display: flex; flex-direction: column; gap: 8px; padding: 14px; background: #f5f5f5; border: 1px solid var(--border); border-radius: var(--radius-md); }
+          .td-header { padding: 18px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; background: var(--bg-surface); z-index: 1; }
+          .td-body { padding: 24px; display: flex; flex-direction: column; gap: 18px; flex: 1; }
+          .td-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1.3; color: var(--text-primary); margin: 0; }
+          .td-desc { font-size: 14px; color: var(--text-secondary); lineHeight: 1.6; background: var(--bg-subtle); padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--border); margin: 0; }
+          .td-meta { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); }
           .td-meta-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
           .td-meta-icon { color: var(--text-muted); }
-          .td-section { display: flex; flex-direction: column; gap: 12px; }
-          .td-section-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-secondary); }
-          .td-comments { display: flex; flex-direction: column; gap: 14px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
-          .td-comment { display: flex; gap: 10px; align-items: flex-start; }
+          .td-section { display: flex; flex-direction: column; gap: 12px; margin-top: 6px; }
+          .td-section-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0; }
+          .td-comments { display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
+          .td-comment { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border); }
           .td-comment-form { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
           @media (max-width: 600px) { .task-detail-panel { width: 100%; } }
         `}</style>

@@ -35,7 +35,7 @@ export default function ProfilePage() {
       toast.success("Profil mis à jour");
       setErrors({});
     } catch (err) {
-      toast.error(err.response?.data?.message || "Erreur");
+      toast.error(err.response?.data?.message || "Erreur de mise à jour");
     }
     setSaving(false);
   };
@@ -47,7 +47,7 @@ export default function ProfilePage() {
     if (!pwForm.new_password || pwForm.new_password.length < 6)
       errs.new_password = "Min. 6 caractères";
     if (pwForm.new_password !== pwForm.confirm)
-      errs.confirm = "Ne correspondent pas";
+      errs.confirm = "Les mots de passe ne correspondent pas";
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
@@ -58,11 +58,11 @@ export default function ProfilePage() {
         current_password: pwForm.current_password,
         new_password: pwForm.new_password,
       });
-      toast.success("Mot de passe modifié");
+      toast.success("Mot de passe modifié avec succès");
       setPwForm({ current_password: "", new_password: "", confirm: "" });
       setErrors({});
     } catch (err) {
-      toast.error(err.response?.data?.message || "Erreur");
+      toast.error(err.response?.data?.message || "Erreur lors du changement de mot de passe");
     }
     setSaving(false);
   };
@@ -83,7 +83,7 @@ export default function ProfilePage() {
     try {
       const userToDelete = users.find((u) => u.id === userId);
       await authAPI.deleteUser(userId);
-      toast.success(`${userToDelete.nom} a été supprimé`);
+      toast.success(`${userToDelete?.nom || "L'utilisateur"} a été supprimé`);
       setDeleteConfirm(null);
       loadUsers();
     } catch (err) {
@@ -106,21 +106,35 @@ export default function ProfilePage() {
       .map((n) => n[0])
       .join("")
       .toUpperCase()
-      .slice(0, 2) || "??";
+      .slice(0, 2) || "TF";
 
   return (
     <div className="page-container fade-in">
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: 24 }}>
         <div>
-          <h1 className="page-title">Profil</h1>
-          <p className="page-subtitle">Gérez vos informations personnelles</p>
+          <h1 className="page-title" style={{ fontSize: 24, fontWeight: 700 }}>
+            Mon Profil & Paramètres
+          </h1>
+          <p className="page-subtitle">Gérez vos informations personnelles et vos accès</p>
         </div>
       </div>
 
       <div className="profile-layout">
         <div className="profile-sidebar">
           <div className="card" style={{ textAlign: "center", padding: 28 }}>
-            <div className="avatar avatar-xl" style={{ margin: "0 auto 14px" }}>
+            <div
+              className="avatar avatar-xl"
+              style={{
+                margin: "0 auto 16px",
+                width: 72,
+                height: 72,
+                fontSize: 22,
+                fontWeight: 700,
+                background: "linear-gradient(135deg, #0284c7, #2563eb)",
+                color: "#fff",
+                boxShadow: "0 4px 14px rgba(2, 132, 199, 0.35)",
+              }}
+            >
               {initials}
             </div>
             <h3
@@ -129,6 +143,7 @@ export default function ProfilePage() {
                 fontSize: 17,
                 fontWeight: 700,
                 marginBottom: 4,
+                color: "var(--text-primary)",
               }}
             >
               {user?.nom}
@@ -137,7 +152,7 @@ export default function ProfilePage() {
               style={{
                 fontSize: 13,
                 color: "var(--text-muted)",
-                marginBottom: 12,
+                marginBottom: 14,
               }}
             >
               {user?.email}
@@ -150,25 +165,40 @@ export default function ProfilePage() {
                 fontSize: 12,
                 background:
                   user?.role === "admin"
-                    ? "rgba(0,0,0,0.08)"
-                    : "rgba(0,0,0,0.04)",
-                color: user?.role === "admin" ? "#000000" : "#333333",
+                    ? "var(--accent-subtle)"
+                    : "var(--bg-subtle)",
+                color: user?.role === "admin" ? "var(--accent)" : "var(--text-secondary)",
                 borderRadius: 100,
-                padding: "3px 12px",
+                padding: "4px 12px",
                 fontWeight: 600,
+                border: "1px solid var(--border)",
               }}
             >
-              <Shield size={11} />
-              {user?.role === "admin" ? "Administrateur" : "Membre"}
+              <Shield size={12} />
+              {user?.role === "admin" ? "Administrateur" : "Membre de l'équipe"}
             </span>
           </div>
+
           {user?.bio && (
-            <div className="card" style={{ marginTop: 10 }}>
+            <div className="card" style={{ marginTop: 12, padding: 16 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: "var(--text-muted)",
+                  marginBottom: 6,
+                }}
+              >
+                Bio
+              </div>
               <p
                 style={{
                   fontSize: 13,
                   color: "var(--text-secondary)",
                   lineHeight: 1.6,
+                  margin: 0,
                 }}
               >
                 {user.bio}
@@ -186,7 +216,7 @@ export default function ProfilePage() {
                 setErrors({});
               }}
             >
-              <User size={13} /> Informations
+              <User size={14} /> Informations
             </button>
             <button
               className={`tab ${tab === "security" ? "active" : ""}`}
@@ -195,7 +225,7 @@ export default function ProfilePage() {
                 setErrors({});
               }}
             >
-              <Lock size={13} /> Sécurité
+              <Lock size={14} /> Mot de passe
             </button>
             {user?.role === "admin" && (
               <button
@@ -205,19 +235,20 @@ export default function ProfilePage() {
                   setErrors({});
                 }}
               >
-                <Users size={13} /> Administration
+                <Users size={14} /> Administration
               </button>
             )}
           </div>
 
           {tab === "profile" ? (
-            <div className="card">
+            <div className="card" style={{ padding: 24 }}>
               <h3
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: 700,
                   marginBottom: 20,
+                  color: "var(--text-primary)",
                 }}
               >
                 Informations personnelles
@@ -258,21 +289,22 @@ export default function ProfilePage() {
                     className="form-input"
                     value={user?.email}
                     disabled
-                    style={{ opacity: 0.5 }}
+                    style={{ opacity: 0.65, background: "var(--bg-body)", cursor: "not-allowed" }}
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Bio</label>
+                  <label className="form-label">Bio / Présentation</label>
                   <textarea
                     className="form-textarea"
-                    placeholder="Décrivez-vous en quelques mots..."
+                    placeholder="Présentez votre rôle ou vos expertises..."
                     value={form.bio}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, bio: e.target.value }))
                     }
+                    rows={4}
                   />
                 </div>
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
                   <button
                     type="submit"
                     className="btn btn-primary"
@@ -282,7 +314,7 @@ export default function ProfilePage() {
                       <span className="spinner" />
                     ) : (
                       <>
-                        <Save size={15} /> Enregistrer
+                        <Save size={15} /> Enregistrer les modifications
                       </>
                     )}
                   </button>
@@ -290,16 +322,17 @@ export default function ProfilePage() {
               </form>
             </div>
           ) : tab === "security" ? (
-            <div className="card">
+            <div className="card" style={{ padding: 24 }}>
               <h3
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: 700,
-                  marginBottom: 8,
+                  marginBottom: 6,
+                  color: "var(--text-primary)",
                 }}
               >
-                Changer le mot de passe
+                Modifier votre mot de passe
               </h3>
               <p
                 style={{
@@ -308,7 +341,7 @@ export default function ProfilePage() {
                   marginBottom: 20,
                 }}
               >
-                Choisissez un mot de passe fort d'au moins 6 caractères.
+                Pour sécuriser votre compte, choisissez un mot de passe robuste d'au moins 6 caractères.
               </p>
               <form
                 onSubmit={handlePasswordSave}
@@ -327,7 +360,7 @@ export default function ProfilePage() {
                   },
                   {
                     key: "confirm",
-                    label: "Confirmer",
+                    label: "Confirmer le nouveau mot de passe",
                     placeholder: "••••••••",
                   },
                 ].map(({ key, label, placeholder }) => (
@@ -347,7 +380,7 @@ export default function ProfilePage() {
                     )}
                   </div>
                 ))}
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
                   <button
                     type="submit"
                     className="btn btn-primary"
@@ -357,7 +390,7 @@ export default function ProfilePage() {
                       <span className="spinner" />
                     ) : (
                       <>
-                        <Lock size={15} /> Modifier
+                        <Lock size={15} /> Mettre à jour le mot de passe
                       </>
                     )}
                   </button>
@@ -365,165 +398,165 @@ export default function ProfilePage() {
               </form>
             </div>
           ) : (
-            <div className="card">
-              <h3
+            <div className="card" style={{ padding: 24 }}>
+              <div
                 style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: 15,
-                  fontWeight: 700,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   marginBottom: 20,
                 }}
               >
-                Gestion des utilisateurs
-              </h3>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: 16,
+                    fontWeight: 700,
+                    margin: 0,
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Gestion des utilisateurs
+                </h3>
+                <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                  {users.length} utilisateur{users.length > 1 ? "s" : ""}
+                </span>
+              </div>
+
               {loadingUsers ? (
                 <div style={{ textAlign: "center", padding: "40px 0" }}>
                   <span className="spinner spinner-lg" />
                 </div>
               ) : (
-                <>
-                  <p
+                <div style={{ overflowX: "auto" }}>
+                  <table
                     style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
                       fontSize: 13,
-                      color: "var(--text-muted)",
-                      marginBottom: 16,
                     }}
                   >
-                    {users.length} utilisateur{users.length > 1 ? "s" : ""}{" "}
-                    enregistré{users.length > 1 ? "s" : ""}
-                  </p>
-                  <div style={{ overflowX: "auto" }}>
-                    <table
-                      style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        fontSize: 13,
-                      }}
-                    >
-                      <thead>
-                        <tr
+                    <thead>
+                      <tr
+                        style={{
+                          borderBottom: "1px solid var(--border)",
+                          background: "var(--bg-subtle)",
+                        }}
+                      >
+                        <th
                           style={{
-                            borderBottom: "1px solid var(--border)",
+                            textAlign: "left",
+                            padding: "10px 12px",
+                            fontWeight: 600,
+                            color: "var(--text-secondary)",
+                            borderRadius: "var(--radius-sm) 0 0 var(--radius-sm)",
                           }}
                         >
-                          <th
-                            style={{
-                              textAlign: "left",
-                              padding: "12px 0",
-                              fontWeight: 600,
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            Nom
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "left",
-                              padding: "12px 0",
-                              fontWeight: 600,
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            Email
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "left",
-                              padding: "12px 0",
-                              fontWeight: 600,
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            Rôle
-                          </th>
-                          <th
-                            style={{
-                              textAlign: "right",
-                              padding: "12px 0",
-                              fontWeight: 600,
-                              color: "var(--text-secondary)",
-                            }}
-                          >
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((u) => (
-                          <tr
-                            key={u.id}
-                            style={{
-                              borderBottom: "1px solid var(--border)",
-                            }}
-                          >
-                            <td
-                              style={{
-                                padding: "12px 0",
-                                color: "var(--text-primary)",
-                              }}
-                            >
-                              <strong>{u.nom}</strong>
-                            </td>
-                            <td
-                              style={{
-                                padding: "12px 0",
-                                color: "var(--text-secondary)",
-                              }}
-                            >
-                              {u.email}
-                            </td>
-                            <td
-                              style={{
-                                padding: "12px 0",
-                              }}
-                            >
-                              <span
+                          Membre
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: "10px 12px",
+                            fontWeight: 600,
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          Email
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: "10px 12px",
+                            fontWeight: 600,
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          Rôle
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "right",
+                            padding: "10px 12px",
+                            fontWeight: 600,
+                            color: "var(--text-secondary)",
+                            borderRadius: "0 var(--radius-sm) var(--radius-sm) 0",
+                          }}
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u) => (
+                        <tr
+                          key={u.id}
+                          style={{
+                            borderBottom: "1px solid var(--border-subtle)",
+                            transition: "background 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-subtle)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        >
+                          <td style={{ padding: "12px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <div
+                                className="avatar avatar-sm"
                                 style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                  fontSize: 11,
-                                  background:
-                                    u.role === "admin"
-                                      ? "rgba(0,0,0,0.08)"
-                                      : "rgba(0,0,0,0.04)",
-                                  color:
-                                    u.role === "admin" ? "#000000" : "#333333",
-                                  borderRadius: 100,
-                                  padding: "2px 10px",
-                                  fontWeight: 600,
-                                  border:
-                                    u.role === "admin"
-                                      ? "1px solid rgba(0,0,0,0.15)"
-                                      : "1px solid rgba(0,0,0,0.08)",
+                                  background: "var(--accent-subtle)",
+                                  color: "var(--accent)",
+                                  fontWeight: 700,
                                 }}
                               >
-                                <Shield size={10} />
-                                {u.role === "admin" ? "Admin" : "Membre"}
+                                {u.nom?.[0]?.toUpperCase()}
+                              </div>
+                              <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                                {u.nom}
                               </span>
-                            </td>
-                            <td
+                            </div>
+                          </td>
+                          <td style={{ padding: "12px", color: "var(--text-secondary)" }}>
+                            {u.email}
+                          </td>
+                          <td style={{ padding: "12px" }}>
+                            <span
                               style={{
-                                padding: "12px 0",
-                                textAlign: "right",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                fontSize: 11,
+                                background:
+                                  u.role === "admin"
+                                    ? "var(--accent-subtle)"
+                                    : "var(--bg-subtle)",
+                                color:
+                                  u.role === "admin" ? "var(--accent)" : "var(--text-secondary)",
+                                borderRadius: 100,
+                                padding: "2px 10px",
+                                fontWeight: 600,
+                                border: "1px solid var(--border)",
                               }}
                             >
-                              {u.id !== user.id && (
-                                <button
-                                  className="btn btn-danger btn-sm"
-                                  onClick={() => setDeleteConfirm(u.id)}
-                                  disabled={saving}
-                                >
-                                  <Trash2 size={13} /> Supprimer
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
+                              <Shield size={10} />
+                              {u.role === "admin" ? "Admin" : "Membre"}
+                            </span>
+                          </td>
+                          <td style={{ padding: "12px", textAlign: "right" }}>
+                            {u.id !== user.id && (
+                              <button
+                                className="btn btn-danger btn-sm"
+                                onClick={() => setDeleteConfirm(u.id)}
+                                disabled={saving}
+                              >
+                                <Trash2 size={13} /> Supprimer
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}
@@ -547,7 +580,7 @@ export default function ProfilePage() {
                   <p style={{ fontSize: 14, color: "var(--text-secondary)" }}>
                     Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette
                     action est irréversible et supprimera également tous ses
-                    projets.
+                    projets associés.
                   </p>
                 </div>
                 <div className="modal-footer">
@@ -574,8 +607,7 @@ export default function ProfilePage() {
 
       <style>{`
         .profile-layout { display: flex; gap: 24px; align-items: flex-start; }
-        .profile-sidebar { width: 240px; flex-shrink: 0; }
-        .input-error { border-color: #000000 !important; }
+        .profile-sidebar { width: 260px; flex-shrink: 0; }
         @media (max-width: 768px) { .profile-layout { flex-direction: column; } .profile-sidebar { width: 100%; } }
       `}</style>
     </div>

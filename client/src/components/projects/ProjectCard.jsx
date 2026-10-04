@@ -1,27 +1,31 @@
 import { Link } from "react-router-dom";
 import {
-  MoreVertical,
+  MoreHorizontal,
   Users,
-  CheckSquare,
+  CheckCircle2,
   Calendar,
   Trash2,
   Edit2,
+  Star,
+  ExternalLink,
+  Kanban,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-const PRIORITE_LABELS = {
-  basse: "Basse",
-  moyenne: "Moyenne",
-  haute: "Haute",
-  critique: "Critique",
+const PRIORITE_CONFIG = {
+  basse: { label: "Basse", class: "badge-basse" },
+  moyenne: { label: "Moyenne", class: "badge-moyenne" },
+  haute: { label: "Haute", class: "badge-haute" },
+  critique: { label: "Critique", class: "badge-critique" },
 };
-const STATUT_LABELS = {
-  actif: "Actif",
-  en_pause: "En pause",
-  terminé: "Terminé",
-  annulé: "Annulé",
+
+const STATUT_CONFIG = {
+  actif: { label: "Actif", class: "badge-done" },
+  en_pause: { label: "En pause", class: "badge-review" },
+  terminé: { label: "Terminé", class: "badge-inprogress" },
+  annulé: { label: "Annulé", class: "badge-todo" },
 };
 
 export default function ProjectCard({
@@ -29,200 +33,342 @@ export default function ProjectCard({
   onEdit,
   onDelete,
   currentUserId,
+  isFavorite = false,
+  onToggleFavorite,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef();
 
   useEffect(() => {
     const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target))
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
         setMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const {
+    id,
     titre,
     description,
     statut,
     priorite,
-    couleur,
+    couleur = "#2563eb",
     stats,
-    membres,
+    membres = [],
     createur,
     createdAt,
   } = project;
-  const progress =
-    stats?.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
+
+  const total = stats?.total || 0;
+  const done = stats?.done || 0;
+  const progress = total > 0 ? Math.round((done / total) * 100) : 0;
   const canEdit = project.createur_id === currentUserId;
-  const isOthersMember = createur && createur.id !== currentUserId;
 
   return (
-    <div className="project-card">
-      <div className="project-card-accent" style={{ background: couleur }} />
+    <div className="trello-board-card">
+      {/* Top Banner / Cover */}
+      <div
+        className="board-card-cover"
+        style={{
+          background: couleur.startsWith("#")
+            ? `linear-gradient(135deg, ${couleur} 0%, #1e293b 140%)`
+            : couleur,
+        }}
+      >
+        <div className="cover-badge-row">
+          <span className={`badge ${STATUT_CONFIG[statut]?.class || "badge-todo"}`}>
+            {STATUT_CONFIG[statut]?.label || statut}
+          </span>
+          <span className={`badge ${PRIORITE_CONFIG[priorite]?.class || "badge-moyenne"}`}>
+            {PRIORITE_CONFIG[priorite]?.label || priorite}
+          </span>
+        </div>
 
-      <div className="project-card-header">
-        <div className="project-card-dot" style={{ background: couleur }} />
-        <div className="project-meta">
-          <span
-            className={`badge badge-${statut === "actif" ? "done" : statut === "en_pause" ? "inprogress" : "todo"}`}
-          >
-            {STATUT_LABELS[statut]}
-          </span>
-          <span className={`badge badge-${priorite}`}>
-            {PRIORITE_LABELS[priorite]}
-          </span>
-          {isOthersMember && (
-            <span
-              style={{
-                fontSize: 11,
-                color: "var(--text-muted)",
-                fontStyle: "italic",
+        <div className="cover-actions">
+          {onToggleFavorite && (
+            <button
+              className={`cover-action-btn ${isFavorite ? "starred" : ""}`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleFavorite(id);
               }}
+              title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
-              Créé par {createur?.nom}
-            </span>
+              <Star
+                size={15}
+                fill={isFavorite ? "#eab308" : "none"}
+                color={isFavorite ? "#eab308" : "#ffffff"}
+              />
+            </button>
+          )}
+
+          {canEdit && (
+            <div className="dropdown" ref={menuRef}>
+              <button
+                className="cover-action-btn"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setMenuOpen(!menuOpen);
+                }}
+                title="Options"
+              >
+                <MoreHorizontal size={16} />
+              </button>
+              {menuOpen && (
+                <div className="dropdown-menu">
+                  <button
+                    className="dropdown-item"
+                    onClick={() => {
+                      onEdit(project);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <Edit2 size={13} /> Modifier
+                  </button>
+                  <button
+                    className="dropdown-item danger"
+                    onClick={() => {
+                      onDelete(project);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <Trash2 size={13} /> Supprimer
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
-        {canEdit && (
-          <div
-            className="dropdown"
-            ref={menuRef}
-            style={{ marginLeft: "auto" }}
-          >
-            <button
-              className="btn btn-ghost btn-icon btn-sm"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <MoreVertical size={15} />
-            </button>
-            {menuOpen && (
-              <div className="dropdown-menu">
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    onEdit(project);
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Edit2 size={14} /> Modifier
-                </button>
-                <button
-                  className="dropdown-item danger"
-                  onClick={() => {
-                    onDelete(project);
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Trash2 size={14} /> Supprimer
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
-      <Link to={`/projects/${project.id}`} className="project-card-body">
-        <h3 className="project-title">{titre}</h3>
-        {description && <p className="project-description">{description}</p>}
-      </Link>
+      {/* Card Content */}
+      <Link to={`/projects/${id}`} className="board-card-content">
+        <h3 className="board-title">{titre}</h3>
+        {description ? (
+          <p className="board-description">{description}</p>
+        ) : (
+          <p className="board-description empty">Aucune description</p>
+        )}
 
-      {/* Progress */}
-      {stats?.total > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 11,
-              color: "var(--text-muted)",
-              marginBottom: 6,
-            }}
-          >
-            <span>
-              {stats.done}/{stats.total} tâches terminées
-            </span>
-            <span
-              style={{
-                fontWeight: 600,
-                color:
-                  progress === 100
-                    ? "var(--done-color)"
-                    : "var(--text-secondary)",
-              }}
-            >
-              {progress}%
+        {/* Progress bar */}
+        <div className="board-progress-container">
+          <div className="board-progress-header">
+            <span className="progress-label">Progression</span>
+            <span className="progress-fraction">
+              {done}/{total} ({progress}%)
             </span>
           </div>
-          <div className="progress-bar">
+          <div className="progress-track">
             <div
               className="progress-fill"
-              style={{ width: `${progress}%`, background: couleur }}
+              style={{
+                width: `${progress}%`,
+                background:
+                  progress === 100
+                    ? "#10b981"
+                    : couleur.startsWith("#")
+                    ? couleur
+                    : "#2563eb",
+              }}
             />
           </div>
         </div>
-      )}
 
-      <div className="project-card-footer">
-        {/* Members */}
-        <div className="members-stack">
-          {membres?.slice(0, 4).map((m, i) => (
-            <div
-              key={m.id}
-              className="avatar avatar-sm members-avatar"
-              style={{ marginLeft: i > 0 ? -8 : 0, zIndex: 10 - i }}
-              title={m.nom}
-            >
-              {m.nom?.[0]?.toUpperCase()}
-            </div>
-          ))}
-          {membres?.length > 4 && (
-            <div
-              className="avatar avatar-sm members-avatar"
-              style={{
-                marginLeft: -8,
-                background: "var(--bg-overlay)",
-                color: "var(--text-muted)",
-                border: "2px solid var(--bg-surface)",
-                fontSize: 10,
-              }}
-            >
-              +{membres.length - 4}
-            </div>
-          )}
-        </div>
+        {/* Footer */}
+        <div className="board-card-footer">
+          <div className="footer-left">
+            {membres.length > 0 ? (
+              <div className="avatar-group">
+                {membres.slice(0, 3).map((m) => (
+                  <div
+                    key={m.id}
+                    className="avatar avatar-xs"
+                    title={m.nom}
+                  >
+                    {m.nom?.[0]?.toUpperCase()}
+                  </div>
+                ))}
+                {membres.length > 3 && (
+                  <div className="avatar avatar-xs extra-badge">
+                    +{membres.length - 3}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span className="member-count-hint">
+                <Users size={12} /> Seul
+              </span>
+            )}
+          </div>
 
-        <div className="project-card-stats">
-          <span title="Tâches">
-            <CheckSquare size={13} />
-            {stats?.total || 0}
-          </span>
-          {createdAt && (
-            <span title="Date création">
-              <Calendar size={13} />
-              {format(new Date(createdAt), "dd MMM", { locale: fr })}
+          <div className="footer-right">
+            <span className="open-board-hint">
+              Ouvrir <ExternalLink size={12} />
             </span>
-          )}
+          </div>
         </div>
-      </div>
+      </Link>
 
       <style>{`
-        .project-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; overflow: hidden; transition: all var(--transition); display: flex; flex-direction: column; gap: 14px; }
-        .project-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-        .project-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-        .project-card-header { display: flex; align-items: center; gap: 8px; }
-        .project-card-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-        .project-meta { display: flex; gap: 6px; flex-wrap: wrap; }
-        .project-card-body { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .project-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; line-height: 1.3; color: var(--text-primary); }
-        .project-title:hover { color: var(--accent); }
-        .project-description { font-size: 13px; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .project-card-footer { display: flex; align-items: center; justify-content: space-between; }
-        .members-stack { display: flex; align-items: center; }
-        .members-avatar { border: 2px solid var(--bg-surface); }
-        .project-card-stats { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-muted); }
-        .project-card-stats span { display: flex; align-items: center; gap: 4px; }
+        .trello-board-card {
+          background: #ffffff;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-lg);
+          overflow: hidden;
+          box-shadow: var(--shadow-sm);
+          transition: all var(--transition-smooth);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .trello-board-card:hover {
+          border-color: #cbd5e1;
+          box-shadow: var(--shadow-card-hover);
+          transform: translateY(-3px);
+        }
+
+        .board-card-cover {
+          height: 68px;
+          padding: 10px 12px;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          position: relative;
+        }
+
+        .cover-badge-row {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .cover-actions {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .cover-action-btn {
+          width: 26px;
+          height: 26px;
+          border-radius: var(--radius-sm);
+          border: none;
+          background: rgba(0, 0, 0, 0.25);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all var(--transition);
+        }
+
+        .cover-action-btn:hover {
+          background: rgba(0, 0, 0, 0.45);
+        }
+
+        .cover-action-btn.starred {
+          background: rgba(0, 0, 0, 0.4);
+        }
+
+        .board-card-content {
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+        }
+
+        .board-title {
+          font-size: 15px;
+          font-weight: 600;
+          color: var(--text-primary);
+          line-height: 1.35;
+          margin-bottom: 6px;
+        }
+
+        .board-description {
+          font-size: 12.5px;
+          color: var(--text-secondary);
+          line-height: 1.45;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin-bottom: 14px;
+        }
+
+        .board-description.empty {
+          color: var(--text-light);
+          font-style: italic;
+        }
+
+        .board-progress-container {
+          margin-top: auto;
+          margin-bottom: 14px;
+        }
+
+        .board-progress-header {
+          display: flex;
+          justify-content: space-between;
+          font-size: 11px;
+          color: var(--text-muted);
+          margin-bottom: 5px;
+          font-weight: 500;
+        }
+
+        .progress-track {
+          height: 6px;
+          background: #e2e8f0;
+          border-radius: 9999px;
+          overflow: hidden;
+        }
+
+        .progress-fill {
+          height: 100%;
+          border-radius: 9999px;
+          transition: width 0.4s ease;
+        }
+
+        .board-card-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 10px;
+          border-top: 1px solid var(--border);
+          font-size: 12px;
+        }
+
+        .member-count-hint {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 11.5px;
+          color: var(--text-muted);
+        }
+
+        .extra-badge {
+          background: #e2e8f0 !important;
+          color: #475569 !important;
+          font-size: 9px !important;
+        }
+
+        .open-board-hint {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--accent);
+          font-size: 12px;
+          font-weight: 500;
+          opacity: 0.85;
+          transition: opacity var(--transition);
+        }
+
+        .trello-board-card:hover .open-board-hint {
+          opacity: 1;
+        }
       `}</style>
     </div>
   );

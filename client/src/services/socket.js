@@ -3,10 +3,23 @@ import { io } from 'socket.io-client';
 let socket = null;
 
 const getSocketURL = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "");
+  let url =
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.PROD
+      ? "https://taskflow-production-fd38.up.railway.app"
+      : "http://localhost:5000");
+
+  url = url.trim();
+
+  if (
+    !url.startsWith("http://") &&
+    !url.startsWith("https://") &&
+    !url.startsWith("/")
+  ) {
+    url = `https://${url}`;
   }
-  return "http://localhost:5000";
+
+  return url.replace(/\/api\/?$/, "");
 };
 
 export const getSocket = () => {

@@ -1,15 +1,30 @@
 import axios from "axios";
 
-// Get API URL from environment or use relative path for local dev
+// Get API URL from environment or fallback to Railway production API
 const getBaseURL = () => {
-  if (import.meta.env.VITE_API_URL) {
-    const url = import.meta.env.VITE_API_URL;
-    // Ensure /api is included in the path
-    return url.endsWith("/api") ? url : `${url}/api`;
+  let url =
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.PROD
+      ? "https://taskflow-production-fd38.up.railway.app/api"
+      : "/api");
+
+  url = url.trim();
+
+  // If user entered a domain without protocol (e.g. taskflow-xxx.up.railway.app)
+  if (
+    !url.startsWith("http://") &&
+    !url.startsWith("https://") &&
+    !url.startsWith("/")
+  ) {
+    url = `https://${url}`;
   }
-  // In production without env var, use the current origin
-  // In dev, Vite proxy will handle /api routes
-  return "/api";
+
+  // Ensure /api is included in the path if pointing to an external domain
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url.endsWith("/api") ? url : `${url.replace(/\/+$/, "")}/api`;
+  }
+
+  return url;
 };
 
 const api = axios.create({

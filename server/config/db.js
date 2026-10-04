@@ -3,9 +3,13 @@ const path = require("path");
 
 let sequelize;
 
-if (process.env.DATABASE_URL) {
-  // Production with DATABASE_URL (Render Postgres, Supabase, Neon, etc.)
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+const dbUrl = (process.env.DATABASE_URL || "").trim();
+const isValidDbUrl =
+  dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://");
+
+if (isValidDbUrl) {
+  // Production with valid DATABASE_URL (Railway Postgres, Supabase, Neon, etc.)
+  sequelize = new Sequelize(dbUrl, {
     dialect: "postgres",
     logging: false,
     pool: { max: 10, min: 0, acquire: 30000, idle: 10000 },
@@ -43,6 +47,11 @@ if (process.env.DATABASE_URL) {
   );
 } else {
   // SQLite fallback (Local dev or when no external DB is configured)
+  if (dbUrl && !isValidDbUrl) {
+    console.warn(
+      `⚠️ DATABASE_URL invalide reçue ("${dbUrl}"). Repli automatique sur SQLite.`,
+    );
+  }
   sequelize = new Sequelize({
     dialect: "sqlite",
     storage: path.join(__dirname, "../database/taskflow.sqlite"),

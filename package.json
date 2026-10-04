@@ -2,6 +2,7 @@
   "name": "taskflow",
   "version": "1.0.0",
   "description": "Plateforme de gestion de projets collaboratifs",
+  "main": "server/index.js",
   "private": true,
   "scripts": {
     "start": "cd server && node index.js",

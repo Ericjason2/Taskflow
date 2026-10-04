@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Kanban, Mail, Lock, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Kanban, Mail, Lock, ArrowRight, Shield, User } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import toast from "react-hot-toast";
 
@@ -32,6 +32,11 @@ export default function LoginPage() {
     }
   };
 
+  const fillDemo = (email, password) => {
+    setForm({ email, password });
+    setErrors({});
+  };
+
   return (
     <div className="auth-page">
       <div className="auth-bg">
@@ -51,6 +56,29 @@ export default function LoginPage() {
           <div className="auth-header">
             <h2>Connexion</h2>
             <p>Accédez à vos tableaux et vos tâches</p>
+          </div>
+
+          {/* Quick Demo Access (Mobile-Friendly) */}
+          <div className="demo-accounts-box">
+            <span className="demo-title">Comptes de test rapides</span>
+            <div className="demo-chips">
+              <button
+                type="button"
+                className="demo-chip"
+                onClick={() => fillDemo("admin@taskflow.io", "admin123")}
+              >
+                <Shield size={12} color="var(--accent)" />
+                <span>Admin</span>
+              </button>
+              <button
+                type="button"
+                className="demo-chip"
+                onClick={() => fillDemo("alice@taskflow.io", "membre123")}
+              >
+                <User size={12} color="#10b981" />
+                <span>Alice (Membre)</span>
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
@@ -121,19 +149,61 @@ export default function LoginPage() {
       </div>
 
       <style>{`
-        .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; position: relative; overflow: hidden; background: var(--bg-body); }
+        .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px 16px; position: relative; overflow: hidden; background: var(--bg-body); }
         .auth-bg { position: fixed; inset: 0; pointer-events: none; }
         .auth-grid { position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(148,163,184,0.15) 1px, transparent 1px); background-size: 24px 24px; }
         .auth-glow { position: absolute; top: -150px; right: -150px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(2,132,199,0.12) 0%, transparent 70%); }
         .auth-container { width: 100%; max-width: 420px; position: relative; z-index: 1; }
-        .auth-brand { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 28px; }
+        .auth-brand { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 24px; }
         .auth-logo { width: 40px; height: 40px; background: var(--accent); color: #ffffff; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(2,132,199,0.3); }
         .auth-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--text-primary); }
-        .auth-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-lg); }
-        .auth-header { margin-bottom: 24px; }
+        .auth-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 28px 24px; box-shadow: var(--shadow-lg); }
+        .auth-header { margin-bottom: 20px; }
         .auth-header h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--text-primary); }
-        .auth-header p { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
-        .auth-form { display: flex; flex-direction: column; gap: 18px; margin-bottom: 20px; }
+        .auth-header p { color: var(--text-secondary); font-size: 13.5px; margin-top: 4px; }
+        
+        .demo-accounts-box {
+          background: var(--bg-subtle);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-md);
+          padding: 10px 12px;
+          margin-bottom: 18px;
+        }
+        .demo-title {
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          color: var(--text-muted);
+          display: block;
+          margin-bottom: 6px;
+        }
+        .demo-chips {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .demo-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius-sm);
+          font-size: 12px;
+          font-weight: 500;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all var(--transition);
+        }
+        .demo-chip:hover {
+          border-color: var(--accent);
+          color: var(--accent);
+          background: var(--accent-subtle);
+        }
+
+        .auth-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 18px; }
         .input-icon-wrapper { position: relative; }
         .input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
         .input-with-icon { padding-left: 38px !important; }
@@ -142,9 +212,13 @@ export default function LoginPage() {
         .input-action:hover { color: var(--text-secondary); }
         .input-error { border-color: var(--danger) !important; }
         .auth-submit { width: 100%; justify-content: center; font-weight: 600; }
-        .auth-switch { text-align: center; font-size: 14px; color: var(--text-secondary); }
+        .auth-switch { text-align: center; font-size: 13.5px; color: var(--text-secondary); }
         .auth-switch a { color: var(--accent); font-weight: 600; }
         .auth-switch a:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+          .auth-card { padding: 20px 16px; }
+        }
       `}</style>
     </div>
   );

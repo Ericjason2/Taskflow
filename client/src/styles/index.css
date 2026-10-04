@@ -1,5 +1,5 @@
 :root {
-  /* Modern Trello & shadcn/ui Design Tokens */
+  /* Modern shadcn/ui Design Tokens */
   --bg-base: #f8fafc;
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
@@ -133,19 +133,27 @@ body {
   width: 7px;
   height: 7px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   font-weight: 600;
   color: var(--text-primary);
@@ -163,7 +171,9 @@ button {
   font-family: var(--font-body);
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: var(--font-body);
 }
 
@@ -235,12 +245,14 @@ input, textarea, select {
   border-color: var(--accent);
   box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
+
 .btn-primary:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
   transform: translateY(-1px);
 }
+
 .btn-primary:active {
   transform: translateY(0);
 }
@@ -251,6 +263,7 @@ input, textarea, select {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-xs);
 }
+
 .btn-secondary:hover {
   background: var(--bg-subtle);
   border-color: var(--border-strong);
@@ -261,6 +274,7 @@ input, textarea, select {
   color: var(--text-secondary);
   border-color: transparent;
 }
+
 .btn-ghost:hover {
   background: var(--bg-subtle);
   color: var(--text-primary);
@@ -271,6 +285,7 @@ input, textarea, select {
   color: var(--text-primary);
   border: 1px solid var(--border);
 }
+
 .btn-outline:hover {
   background: var(--bg-subtle);
   border-color: var(--border-strong);
@@ -281,6 +296,7 @@ input, textarea, select {
   color: var(--prio-critique);
   border: 1px solid var(--prio-critique-border);
 }
+
 .btn-danger:hover {
   background: #fee2e2;
   color: #b91c1c;
@@ -320,9 +336,11 @@ input, textarea, select {
   box-shadow: var(--shadow-card);
   transition: all var(--transition-smooth);
 }
+
 .card:hover {
   border-color: var(--border-strong);
 }
+
 .card-hover:hover {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
@@ -393,16 +411,19 @@ input, textarea, select {
   color: var(--todo-color);
   border-color: var(--todo-border);
 }
+
 .badge-inprogress {
   background: var(--inprogress-bg);
   color: var(--inprogress-color);
   border-color: var(--inprogress-border);
 }
+
 .badge-review {
   background: var(--review-bg);
   color: var(--review-color);
   border-color: var(--review-border);
 }
+
 .badge-done {
   background: var(--done-bg);
   color: var(--done-color);
@@ -414,16 +435,19 @@ input, textarea, select {
   color: #047857;
   border-color: var(--prio-basse-border);
 }
+
 .badge-moyenne {
   background: var(--prio-moyenne-bg);
   color: #0369a1;
   border-color: var(--prio-moyenne-border);
 }
+
 .badge-haute {
   background: var(--prio-haute-bg);
   color: #b45309;
   border-color: var(--prio-haute-border);
 }
+
 .badge-critique {
   background: var(--prio-critique-bg);
   color: #b91c1c;
@@ -445,37 +469,45 @@ input, textarea, select {
   border: 2px solid #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 .avatar-xs {
   width: 22px;
   height: 22px;
   font-size: 9.5px;
 }
+
 .avatar-sm {
   width: 28px;
   height: 28px;
   font-size: 11px;
 }
+
 .avatar-md {
   width: 36px;
   height: 36px;
   font-size: 13px;
 }
+
 .avatar-lg {
   width: 48px;
   height: 48px;
   font-size: 16px;
 }
+
 .avatar-group {
   display: flex;
   align-items: center;
 }
+
 .avatar-group .avatar {
   margin-left: -7px;
   transition: transform var(--transition);
 }
+
 .avatar-group .avatar:first-child {
   margin-left: 0;
 }
+
 .avatar-group .avatar:hover {
   transform: translateY(-2px);
   z-index: 2;
@@ -535,6 +567,7 @@ input, textarea, select {
 .dropdown {
   position: relative;
 }
+
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -548,6 +581,7 @@ input, textarea, select {
   box-shadow: var(--shadow-lg);
   animation: slideUp 0.12s ease;
 }
+
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -564,13 +598,16 @@ input, textarea, select {
   width: 100%;
   text-align: left;
 }
+
 .dropdown-item:hover {
   background: var(--bg-subtle);
   color: var(--text-primary);
 }
+
 .dropdown-item.danger {
   color: #ef4444;
 }
+
 .dropdown-item.danger:hover {
   background: #fef2f2;
   color: #dc2626;
@@ -585,6 +622,7 @@ input, textarea, select {
   border-radius: var(--radius-md);
   padding: 3px;
 }
+
 .tab {
   display: inline-flex;
   align-items: center;
@@ -599,9 +637,11 @@ input, textarea, select {
   border: none;
   background: none;
 }
+
 .tab:hover:not(.active) {
   color: var(--text-primary);
 }
+
 .tab.active {
   background: #ffffff;
   color: var(--text-primary);
@@ -611,16 +651,37 @@ input, textarea, select {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
+
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
+
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fade-in {
@@ -632,9 +693,11 @@ input, textarea, select {
   :root {
     --sidebar-width: 0px;
   }
+
   .main-content {
     margin-left: 0;
   }
+
   .page-container {
     padding: 20px 16px;
   }

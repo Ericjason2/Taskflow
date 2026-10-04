@@ -1053,6 +1053,33 @@ export default function ProjectDetailPage() {
             grid-template-columns: 1fr;
           }
         }
+
+        @media (max-width: 820px) {
+          .board-page-container {
+            padding: 16px 12px;
+          }
+          .trello-board-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .board-header-right {
+            justify-content: space-between;
+            width: 100%;
+          }
+          .board-sub-ribbon {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+          .board-search-box {
+            min-width: 100%;
+            max-width: 100%;
+          }
+          .board-filter-select {
+            width: 100%;
+          }
+        }
       `}</style>
     </div>
   );

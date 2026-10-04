@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Briefcase,
   Star,
+  Check,
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
@@ -101,7 +102,7 @@ export default function Sidebar() {
                   />
                   <span className="board-link-title">{p.titre}</span>
                   {p.stats?.done === p.stats?.total && p.stats?.total > 0 && (
-                    <span className="board-check">✓</span>
+                    <Check size={12} color="#10b981" strokeWidth={3} />
                   )}
                 </NavLink>
               ))}

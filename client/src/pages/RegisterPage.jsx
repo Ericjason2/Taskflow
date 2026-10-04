@@ -189,6 +189,11 @@ export default function RegisterPage() {
         .auth-switch { text-align: center; font-size: 14px; color: var(--text-secondary); }
         .auth-switch a { color: var(--accent); font-weight: 600; }
         .auth-switch a:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+          .auth-page { padding: 16px 12px; }
+          .auth-card { padding: 20px 16px; }
+        }
       `}</style>
     </div>
   );

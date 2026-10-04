@@ -134,7 +134,7 @@ export default function DashboardPage() {
             </span>
           </div>
           <h1 className="page-title" style={{ fontSize: 26, fontWeight: 700 }}>
-            Bonjour, {user?.nom?.split(" ")[0]} 👋
+            Bonjour, {user?.nom?.split(" ")[0]}
           </h1>
           <p className="page-subtitle">
             Voici l'avancement global de vos tableaux et cartes d'équipe

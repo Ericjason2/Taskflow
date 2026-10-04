@@ -150,10 +150,10 @@ export default function TaskModal({
                   value={form.statut}
                   onChange={set("statut")}
                 >
-                  <option value="todo">📋 À faire</option>
-                  <option value="in_progress">⚡ En cours</option>
-                  <option value="review">👀 En révision</option>
-                  <option value="done">✅ Terminé</option>
+                  <option value="todo">À faire</option>
+                  <option value="in_progress">En cours</option>
+                  <option value="review">En révision</option>
+                  <option value="done">Terminé</option>
                 </select>
               </div>
               <div className="form-group">
@@ -163,10 +163,10 @@ export default function TaskModal({
                   value={form.priorite}
                   onChange={set("priorite")}
                 >
-                  <option value="basse">🟢 Basse</option>
-                  <option value="moyenne">🔵 Moyenne</option>
-                  <option value="haute">🟠 Haute</option>
-                  <option value="critique">🔴 Critique</option>
+                  <option value="basse">Basse</option>
+                  <option value="moyenne">Moyenne</option>
+                  <option value="haute">Haute</option>
+                  <option value="critique">Critique</option>
                 </select>
               </div>
             </div>
@@ -226,8 +226,9 @@ export default function TaskModal({
                       type="button"
                       className="tag-remove-btn"
                       onClick={() => removeTag(tag)}
+                      title="Supprimer l'étiquette"
                     >
-                      ×
+                      <X size={11} />
                     </button>
                   </span>
                 ))}

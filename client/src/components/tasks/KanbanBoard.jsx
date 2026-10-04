@@ -340,12 +340,13 @@ export default function KanbanBoard({
 
       <style>{`
         .trello-board-canvas {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          display: flex;
           gap: 16px;
           align-items: flex-start;
           overflow-x: auto;
-          padding-bottom: 20px;
+          -webkit-overflow-scrolling: touch;
+          scroll-snap-type: x mandatory;
+          padding-bottom: 24px;
         }
 
         .trello-list-column {
@@ -354,8 +355,10 @@ export default function KanbanBoard({
           border-radius: var(--radius-lg);
           display: flex;
           flex-direction: column;
-          max-height: calc(100vh - 230px);
-          min-width: 260px;
+          max-height: calc(100vh - 220px);
+          flex: 0 0 285px;
+          width: 285px;
+          scroll-snap-align: start;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
         }
 
@@ -665,15 +668,10 @@ export default function KanbanBoard({
           color: var(--text-primary);
         }
 
-        @media (max-width: 1120px) {
-          .trello-board-canvas {
-            grid-template-columns: repeat(2, 1fr);
-          }
-        }
-
-        @media (max-width: 640px) {
-          .trello-board-canvas {
-            grid-template-columns: 1fr;
+        @media (max-width: 540px) {
+          .trello-list-column {
+            flex: 0 0 calc(100vw - 44px);
+            width: calc(100vw - 44px);
           }
         }
       `}</style>

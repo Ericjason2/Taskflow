@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Mail, Lock, Save, Shield, Trash2, Users } from "lucide-react";
+import { User, Mail, Lock, Save, Shield, Trash2, Users, X } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import { authAPI } from "../services/api";
 import toast from "react-hot-toast";
@@ -573,7 +573,7 @@ export default function ProfilePage() {
                     className="btn btn-ghost btn-icon"
                     onClick={() => setDeleteConfirm(null)}
                   >
-                    ✕
+                    <X size={18} />
                   </button>
                 </div>
                 <div className="modal-body">

@@ -60,14 +60,14 @@ const PRIORITE_STYLES = {
   critique: { label: "Critique", bg: "#fef2f2", color: "#b91c1c", border: "#fecaca" },
 };
 
-function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId }) {
+function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCreator }) {
   const isOverdue =
     task.echeance &&
     new Date(task.echeance) < new Date() &&
     task.statut !== "done";
   const isDone = task.statut === "done";
   const canModify =
-    task.cree_par === currentUserId || task.assigne_a === currentUserId;
+    isCreator || task.cree_par === currentUserId || task.assigne_a === currentUserId;
 
   const prio = PRIORITE_STYLES[task.priorite] || PRIORITE_STYLES.moyenne;
 
@@ -225,6 +225,7 @@ export default function KanbanBoard({
   onViewTask,
   onDeleteTask,
   currentUserId,
+  isCreator,
 }) {
   const { updateTaskStatus, setTasksLocal } = useProjectStore();
 
@@ -306,6 +307,7 @@ export default function KanbanBoard({
                         onEdit={onEditTask}
                         onDelete={onDeleteTask}
                         currentUserId={currentUserId}
+                        isCreator={isCreator}
                       />
                     ))}
                     {provided.placeholder}

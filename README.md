@@ -1,325 +1,188 @@
-# TaskFlow — Plateforme de Gestion de Projets Collaboratifs
+# TaskFlow — Plateforme de Gestion de Projets Collaboratifs (Style Trello)
 
-Une plateforme web (MVP) moderne et intuitive pour gérer des projets en équipe avec une interface collaborative, temps réel, et gestion des tâches avancée.
+Une plateforme web moderne, fluide et collaborative pour gérer des projets en équipe avec une expérience inspirée de Trello, des vues multiples, une synchronisation temps réel et des règles de sécurité rigoureuses.
 
-**[Démo Live](https://taskflow-1i4vctv6x-erickouta6-4147s-projects.vercel.app)** • **[Documentation API](./docs/API.md)**
-
----
-
-## Caractéristiques Principales
-
-**Interface Moderne**
-
-- Design minimaliste noir/blanc avec CSS Variables
-- Responsive mobile-first
-- Drag & Drop intuitif pour les tâches (Kanban)
-
-  **Gestion des Utilisateurs**
-
-- Authentification JWT sécurisée
-- Rôles : Admin, Créateur de projet, Membre
-- Permissions granulaires par rôle
-
-  **Gestion de Projets & Tâches**
-
-- CRUD complet sur projets et tâches
-- Statuts : À faire, En cours, En révision, Terminé
-- Assignation de tâches aux membres
-- Système de commentaires
-
-  **Temps Réel**
-
-- Socket.io pour la synchronisation instantanée
-- Fil d'activité en direct
-- Notifications Toast
-
-  **Analytique**
-
-- Graphiques Recharts (Pie & Bar)
-- Dashboard Admin avec stats complètes
-- Pagination et filtres avancés
+**[Démo Live (Frontend Vercel)](https://taskflow-ivory-nine.vercel.app)** • **[API Backend (Railway)](https://taskflow-production-fd38.up.railway.app)** • **[Documentation API](./docs/API.md)**
 
 ---
 
-## Déploiement
+## Déploiement en Production
 
-| Service               | URL                                                                                    | Status |
-| --------------------- | -------------------------------------------------------------------------------------- | ------ |
-| **Frontend** (Vercel) | [taskflow.vercel.app](https://taskflow-1i4vctv6x-erickouta6-4147s-projects.vercel.app) | Live   |
-| **Backend** (Render)  | taskflow-api-upnf.onrender.com                                                         | Live   |
+| Service | Plateforme | URL | Statut |
+| :--- | :--- | :--- | :--- |
+| **Frontend** | Vercel | [taskflow-ivory-nine.vercel.app](https://taskflow-ivory-nine.vercel.app) | En ligne |
+| **Backend API** | Railway | [taskflow-production-fd38.up.railway.app](https://taskflow-production-fd38.up.railway.app) | En ligne |
 
-### Configuration Production
+---
 
-**Frontend (Vercel):**
+## Comptes de Démonstration
 
-```
-VITE_API_URL=https://taskflow-api-upnf.onrender.com
-```
+Des boutons de **connexion en un clic** sont directement disponibles sur la page de connexion pour tester immédiatement avec différents profils et rôles :
 
-**Backend (Render):**
+| Utilisateur | Email | Mot de passe | Rôle & Permissions |
+| :--- | :--- | :--- | :--- |
+| **Admin** | `admin@taskflow.io` | `admin123` | **Administrateur** : Vue globale sur tous les tableaux, métriques et gestion des utilisateurs |
+| **Alice** | `alice@taskflow.io` | `membre123` | **Collaboratrice** (Frontend) : Gestion de projets, création et suivi de tâches |
+| **Bob** | `bob@taskflow.io` | `membre123` | **Collaborateur** (Backend) : Collaboration et assignation de cartes |
+| **Claire** | `claire@taskflow.io` | `membre123` | **Collaboratrice** (Design) : Collaboration et suivi en temps réel |
 
-```
-NODE_ENV=production
-DATABASE_URL=postgresql://...
-CLIENT_URL=https://taskflow-[hash].vercel.app
-JWT_SECRET=your_secret_key
-JWT_EXPIRE=7d
-```
+> **Note**: Les comptes de test et le jeu de données initial sont automatiquement réinitialisés (*seeded*) au démarrage du serveur (local, Docker ou Railway).
+
+---
+
+## Expérience Utilisateur & Design (Inspiré de Trello)
+
+### Architecture Visuelle Trello
+- **Zéro scroll vertical sur la page du tableau** : Le conteneur du tableau occupe 100% de la hauteur disponible (`100vh` sur desktop, adapté sur mobile) sans barre de défilement globale indésirable.
+- **Canvas Kanban fluide** : Défilement horizontal fluide des colonnes de listes avec scroll-snap sur petits écrans.
+- **Défilement interne des cartes** : Chaque colonne dispose de sa propre zone de défilement vertical indépendante.
+- **Iconographie professionnelle shadcn / Lucide** : Utilisation exclusive des icônes SVG vectorielles (`lucide-react`). Aucune émoticône ni sticker fantaisiste pour un rendu épuré et professionnel.
+- **Palette soignée & micro-interactions** : États de survol délicats, badges de priorité clairs (*Basse*, *Moyenne*, *Haute*, *Critique*), dates d'échéance colorées selon l'urgence, et avatars des membres assignés.
+
+### Vues Multiples Intégrées
+1. **Vue Tableau (Kanban)** : Glisser-déposer (*Drag & Drop*) fluide des cartes entre colonnes (*À faire*, *En cours*, *En révision*, *Terminé*), ajout rapide de cartes en tête ou en bas de colonne.
+2. **Vue Liste (Tabulaire)** : Tableau récapitulatif détaillé avec tri, changement rapide de statut, priorité, échéance et membre assigné.
+3. **Vue Métriques** : Tableau de bord visuel avec taux de complétion dynamique et jauges de répartition par statut.
+
+---
+
+## Système d'Assignation & Règles Métier
+
+Pour garantir un flux de travail collaboratif cohérent et sécurisé :
+1. **Assignation réservée aux collaborateurs ajoutés** : Seuls les membres invités sur le tableau apparaissent dans le menu d'assignation d'une tâche.
+2. **Exclusion stricte de soi-même** : L'utilisateur connecté ne peut pas s'assigner une carte à lui-même (`m.id !== user.id`). Cela favorise la délégation et la responsabilisation des collaborateurs de l'équipe.
+3. **Validation & Protection Backend (400 Bad Request)** : L'API vérifie systématiquement que l'assigné n'est pas l'auteur de la requête et qu'il fait bien partie des membres enregistrés du projet dans la table `ProjectMembers`.
+4. **Gestion des membres** : Le créateur du tableau peut inviter de nouveaux collaborateurs via le bouton **"Inviter"** avec recherche et ajout instantané.
+
+---
+
+## Bonnes Pratiques de Développement & Sécurité
+
+### Sécurité du Backend
+- **Contrôle d'accès basé sur les rôles (RBAC)** : Vérification rigoureuse des droits d'accès sur chaque route (propriétaire du projet, collaborateur invité ou administrateur).
+- **Authentification JWT Sécurisée** : Tokens signés transmis via le header standard `Authorization: Bearer <token>`, avec expiration configurable.
+- **Chiffrement des mots de passe** : Hachage fort avec `bcryptjs` (12 tours de salage).
+- **Protection des en-têtes HTTP** : Intégration de `helmet` pour la protection contre le XSS, sniffing MIME, et clickjacking.
+- **Politique CORS restrictive** : Configuration whitelist autorisant uniquement les origines officielles Vercel et le localhost en développement.
+- **Limitation de débit (Rate Limiting)** : Protection anti-brute-force sur les routes d'authentification et l'API générale.
+- **Sanitisation et validation des entrées** : Contrôle des payloads avec `express-validator` et validation stricte des identifiants et des statuts autorisés.
+
+### Qualité du Frontend
+- **State Management prévisible** : Stores modulaires avec `zustand` (`authStore`, `projectStore`).
+- **Gestion optimiste des états (Optimistic UI)** : Déplacement instantané des cartes lors du drag & drop avec rollback automatique en cas d'erreur réseau.
+- **Intercepteur Axios sécurisé** : Injection automatique du token JWT et gestion centralisée des erreurs 401 avec déconnexion propre.
+- **Mobile-First & Accessibilité** : Layout entièrement responsive conçu pour smartphone, tablette et écran large.
 
 ---
 
 ## Stack Technique
 
-| Couche              | Technologie                                  |
-| ------------------- | -------------------------------------------- |
-| **Frontend**        | React 18 + Vite + Zustand + React Router v6  |
-| **Backend**         | Node.js + Express 4 + Socket.io              |
-| **Base de données** | SQLite (dev) / PostgreSQL (prod)             |
-| **ORM**             | Sequelize 6                                  |
-| **Auth**            | JWT + bcryptjs (12 rounds)                   |
-| **UI Components**   | @hello-pangea/dnd, Recharts, react-hot-toast |
-| **Styling**         | CSS Variables (design system custom)         |
+| Couche | Technologies |
+| :--- | :--- |
+| **Frontend** | React 18, Vite, Zustand, React Router v6, Lucide React, @hello-pangea/dnd, Date-fns, React Hot Toast |
+| **Backend** | Node.js, Express 4, Socket.io, Sequelize ORM 6 |
+| **Base de Données** | SQLite (développement local) / PostgreSQL (production Railway) |
+| **Sécurité** | JWT (JSON Web Tokens), Bcryptjs (12 rounds), Helmet, Express-Rate-Limit, CORS |
+| **Déploiement** | Vercel (SPA Frontend), Railway (API REST + WebSockets) |
 
 ---
 
 ## Installation Locale
 
 ### Prérequis
-
-- Node.js 16+
+- Node.js 18+
 - npm ou yarn
 - Git
 
-### 1. Cloner le repo
-
+### 1. Cloner le dépôt
 ```bash
 git clone https://github.com/erickouta/taskflow.git
 cd taskflow
 ```
 
-### 2. Backend
-
+### 2. Configuration & Démarrage du Backend
 ```bash
 cd server
 npm install
 
-# Créer le fichier .env
+# Copier le fichier d'exemple des variables d'environnement
 cp .env.example .env
 ```
 
-Contenu `.env` (développement):
-
+Exemple de variables `.env` (développement) :
 ```env
-NODE_ENV=development
 PORT=5000
+NODE_ENV=development
 USE_SQLITE=true
-JWT_SECRET=dev_secret_key_change_in_prod
+JWT_SECRET=votre_secret_jwt_securise
 JWT_EXPIRE=7d
 CLIENT_URL=http://localhost:5173
 ```
 
-Démarrer le backend:
-
+Démarrer le serveur backend :
 ```bash
-npm run seed    # Initialiser la BDD avec données de test
-npm run dev     # Démarrer sur http://localhost:5000
+npm run dev
+# Le serveur démarre sur http://localhost:5000 avec auto-seed des 4 comptes de test
 ```
 
-### 3. Frontend
-
+### 3. Configuration & Démarrage du Frontend
+Dans un autre terminal :
 ```bash
 cd client
 npm install
-npm run dev     # Démarrer sur http://localhost:5173
 ```
 
-L'app sera disponible sur **http://localhost:5173**
+Exemple de fichier `.env` pour le client :
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+Démarrer le serveur de développement Vite :
+```bash
+npm run dev
+# L'application est accessible sur http://localhost:5173
+```
 
 ---
 
-## Comptes de Test
-
-| Email                | Mot de passe | Rôle           |
-| -------------------- | ------------ | -------------- |
-| `admin@taskflow.io`  | `admin123`   | Administrateur |
-| `alice@taskflow.io`  | `membre123`  | Membre         |
-| `bob@taskflow.io`    | `membre123`  | Membre         |
-| `claire@taskflow.io` | `membre123`  | Membre         |
-
-> **Note**: En production, l'admin est automatiquement créé/réinitialisé au démarrage du serveur.
-
----
-
-## Architecture
-
-### Structure des Fichiers
+## Structure du Projet
 
 ```
 taskflow/
-├── client/                    # Frontend React
+├── client/                     # Application React SPA (Vite)
 │   ├── src/
-│   │   ├── components/        # Composants réutilisables
-│   │   ├── pages/             # Pages (Dashboard, Projects, Login, etc.)
-│   │   ├── services/          # API & Socket.io
-│   │   ├── store/             # Zustand stores (auth, projects)
-│   │   └── styles/            # CSS global & design system
+│   │   ├── components/         # Composants réutilisables
+│   │   │   ├── common/         # Modales, ConfirmDialog, StatCard
+│   │   │   ├── layout/         # AppLayout, Sidebar, MobileHeader
+│   │   │   └── tasks/          # KanbanBoard, TaskModal, TaskDetailModal
+│   │   ├── pages/              # Pages (Dashboard, Projects, ProjectDetail, Profile, Login...)
+│   │   ├── services/           # Instances API (Axios), intercepteurs, Socket.io
+│   │   ├── store/              # Stores Zustand (authStore, projectStore)
+│   │   └── styles/             # Styles globaux, variables CSS, reset
 │   └── vite.config.js
 │
-├── server/                    # Backend Express
-│   ├── controllers/           # Logique métier
-│   ├── models/                # Sequelize models (User, Project, Task, etc.)
-│   ├── routes/                # Routes API
-│   ├── middleware/            # Auth, validation, errors
-│   └── config/               # DB & seed
+├── server/                     # API REST Node.js / Express
+│   ├── config/                 # Connexion Sequelize & configuration DB
+│   ├── controllers/            # Contrôleurs (auth, project, task, user, stats)
+│   ├── middleware/             # Authentification JWT, validation des rôles
+│   ├── models/                 # Modèles Sequelize et associations relationnelles
+│   ├── routes/                 # Définition des routes de l'API
+│   └── index.js                # Point d'entrée serveur, Socket.io, seed auto
 │
-└── docs/                      # 📚 Documentation
-    └── API.md              # Cette documentation
+└── docs/                       # Documentation technique & spécifications API
+    └── API.md
 ```
-
-### Flux d'Authentification
-
-```
-Login → JWT Token (stocké en localStorage)
-        ↓
-        Utilisé dans tous les appels API (Authorization: Bearer <token>)
-        ↓
-        Middleware auth vérifie le token
-        ↓
-        Accès aux routes protégées
-```
-
-### Synchronisation Temps Réel
-
-```
-Client A modifie une tâche
-    ↓
-emit('task_update', data) via Socket.io
-    ↓
-Serveur reçoit et broadcast à tous les clients du projet
-    ↓
-Clients reçoivent 'task_updated' et re-rendent
-```
-
----
-
-## Sécurité
-
-- **Mots de passe**: Hashage bcryptjs (12 rounds)
-- **JWT**: Tokens avec expiration configurable
-- **Validation**: express-validator sur toutes les entrées
-- **Headers HTTP**: Helmet.js (CSP, XSS protection)
-- **CORS**: Configuré pour l'origine client uniquement
-- **Rate Limiting**: 200 req / 15 min par IP
-- **RBAC**: Contrôle d'accès granulaire par rôle
-- **Cascade Delete**: Suppression conforme des dépendances
-
----
-
-## Documentation API
-
-Voir [docs/API.md](./docs/API.md) pour la documentation complète des endpoints.
-
-**Exemples rapides:**
-
-```bash
-# Login
-curl -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@taskflow.io","password":"admin123"}'
-
-# Créer un projet
-curl -X POST http://localhost:5000/api/projects \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"titre":"Mon projet","description":"..."}'
-```
-
----
-
-## Fonctionnalités par Rôle
-
-### Administrateur
-
-- Visualiser **tous** les projets (lecture seule)
-- Gérer les utilisateurs (suppression + cascade delete)
-- Voir les statistiques globales
-- Accéder au fil d'activité complet
-
-### Créateur de Projet
-
-- Créer/Modifier/Supprimer ses projets
-- Ajouter/Retirer des membres
-- Créer/Modifier/Supprimer des tâches
-- Assigner des tâches
-
-### Membre
-
-- Visualiser les projets auxquels il appartient
-- Créer/Modifier ses tâches assignées
-- Ajouter des commentaires
-- Exporter les statistiques du projet
-
----
-
-## Mises à Jour Récentes
-
-- Correction du routing Vercel (pattern regex CORS)
-- Auto-création du compte admin en production
-- Support des domaines Vercel dynamiques en CORS
-- Configuration API dynamique (VITE_API_URL)
-- Reset du mot de passe admin à chaque démarrage
-
----
-
-## Contribution
-
-Les contributions sont bienvenues ! Pour proposer des changements :
-
-1. Fork le projet
-2. Crée une branche (`git checkout -b feature/AmazingFeature`)
-3. Commite tes changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvre une Pull Request
 
 ---
 
 ## Auteur
 
-**Eric Kouta** - Développeur Full-Stack Junior
-
-- GitHub: [@erickouta](https://github.com/erickouta)
-- Email: erickouta6@gmail.com
-
----
-
-## Remerciements
-
-- [React](https://react.dev) - UI Library
-- [Sequelize](https://sequelize.org) - ORM
-- [Socket.io](https://socket.io) - Real-time communication
-- [Zustand](https://github.com/pmndrs/zustand) - State management
+**Eric Kouta** — Développeur Full-Stack
+- GitHub : [@erickouta](https://github.com/erickouta)
+- Email : erickouta6@gmail.com
 
 ---
 
-## Support
+## Licence
 
-Si vous avez des questions ou des problèmes :
-
-1. Vérifiez la [documentation](/README.md)
-2. Ouvrez une [Issue](https://github.com/erickouta/taskflow/issues)
-3. Consultez la [FAQ](#faq)
-
-### FAQ
-
-**Q: Pourquoi je ne peux pas me connecter?**
-A: Assurez-vous que le backend tourne correctement et que les variables d'environnement sont configurées.
-
-**Q: Comment changer la base de données?**
-A: Modifiez `server/config/db.js` et mettez à jour les variables d'environnement.
-
-**Q: Puis-je utiliser cela en production?**
-A: Oui! Assurez-vous de utiliser PostgreSQL, de changer `JWT_SECRET` et de configurer HTTPS.
-
----
-
-**Fait avec ❤️ par Eric Kouta**
+Ce projet est sous licence MIT. Libre d'utilisation pour des projets d'apprentissage et de développement personnel.

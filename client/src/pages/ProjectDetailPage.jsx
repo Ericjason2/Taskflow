@@ -196,13 +196,13 @@ export default function ProjectDetailPage() {
   const progress =
     stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
   const isCreator = currentProject.createur_id === user?.id;
+  const isMember = currentProject.membres?.some((m) => m.id === user?.id);
+  const canManageTasks = isCreator || isMember || user?.role === "admin";
   const memberIds = currentProject.membres?.map((m) => m.id) || [];
-  const projectMembers = [
-    ...(currentProject.createur ? [currentProject.createur] : []),
-    ...(currentProject.membres || []).filter(
-      (m) => m.id !== currentProject.createur?.id,
-    ),
-  ];
+  // Collaborateurs ajoutés assignables (membres du projet sauf soi-même)
+  const assignableMembers = (currentProject.membres || []).filter(
+    (m) => m.id !== user?.id,
+  );
 
   return (
     <div className="board-page-container fade-in">
@@ -261,7 +261,7 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* New Task Button */}
-          {isCreator && (
+          {canManageTasks && (
             <button
               className="btn btn-primary btn-sm add-task-header-btn"
               onClick={() => handleAddTask()}
@@ -363,6 +363,7 @@ export default function ProjectDetailPage() {
             onViewTask={(t) => setViewTask(t)}
             onDeleteTask={(t) => setDeleteTarget(t)}
             currentUserId={user?.id}
+            isCreator={isCreator || user?.role === "admin"}
           />
         </div>
       )}
@@ -536,7 +537,7 @@ export default function ProjectDetailPage() {
         onClose={() => setTaskModalOpen(false)}
         onSubmit={handleCreateTask}
         defaultStatus={defaultStatus}
-        members={projectMembers}
+        members={assignableMembers}
         isLoading={saving}
       />
       <TaskModal
@@ -544,7 +545,7 @@ export default function ProjectDetailPage() {
         onClose={() => setEditTask(null)}
         onSubmit={handleEditTask}
         initialData={editTask}
-        members={projectMembers}
+        members={assignableMembers}
         isLoading={saving}
       />
       <TaskDetailModal
@@ -648,8 +649,8 @@ export default function ProjectDetailPage() {
           display: flex;
           flex-direction: column;
           gap: 12px;
-          height: 100vh;
-          max-height: 100vh;
+          height: 100%;
+          max-height: 100%;
           overflow: hidden;
           box-sizing: border-box;
         }
@@ -1078,8 +1079,8 @@ export default function ProjectDetailPage() {
 
         @media (max-width: 820px) {
           .board-page-container {
-            height: calc(100vh - 56px);
-            max-height: calc(100vh - 56px);
+            height: 100%;
+            max-height: 100%;
             padding: 10px 12px;
             gap: 8px;
             overflow: hidden;

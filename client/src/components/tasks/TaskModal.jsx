@@ -192,13 +192,22 @@ export default function TaskModal({
                   value={form.assigne_a || ""}
                   onChange={set("assigne_a")}
                 >
-                  <option value="">Non assigné</option>
+                  <option value="">Non assigné (Libre)</option>
                   {memberList.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.nom} {m.email ? `(${m.email})` : ""}
                     </option>
                   ))}
                 </select>
+                {memberList.length === 0 ? (
+                  <span style={{ display: "block", marginTop: 5, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.35 }}>
+                    Aucun collaborateur invité sur ce tableau. Utilisez le bouton "Inviter" du tableau pour en ajouter.
+                  </span>
+                ) : (
+                  <span style={{ display: "block", marginTop: 5, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.35 }}>
+                    Collaborateurs du projet (excepté vous-même).
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">Date d'échéance</label>

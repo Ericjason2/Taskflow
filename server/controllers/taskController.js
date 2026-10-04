@@ -5,6 +5,7 @@ const {
   Comment,
   Activity,
   Project,
+  ProjectMember,
 } = require("../models/associations");
 
 const logActivity = async (
@@ -70,27 +71,59 @@ exports.createTask = async (req, res) => {
     const { titre, description, statut, priorite, assigne_a, echeance, tags } =
       req.body;
 
-    // Verify project exists and user can modify it
+    if (!titre || !titre.trim()) {
+      return res.status(400).json({ success: false, message: "Le titre de la tâche est requis" });
+    }
+
+    // Verify project exists
     const project = await Project.findByPk(projet_id);
     if (!project)
       return res
         .status(404)
         .json({ success: false, message: "Projet introuvable" });
-    if (project.createur_id !== req.user.id) {
+
+    // Verify user is project creator, member or admin
+    const isMember = await ProjectMember.findOne({
+      where: { projet_id, user_id: req.user.id },
+    });
+    const canCreate =
+      project.createur_id === req.user.id || isMember || req.user.role === "admin";
+
+    if (!canCreate) {
       return res.status(403).json({
         success: false,
-        message: "Seul le créateur du projet peut créer des tâches",
+        message: "Accès refusé : vous devez être membre du tableau pour ajouter une tâche",
       });
     }
 
+    // Validation assignation : collaborateur ajouté excepté soi-même
+    let targetAssignee = assigne_a ? parseInt(assigne_a, 10) : null;
+    if (targetAssignee) {
+      if (targetAssignee === req.user.id) {
+        return res.status(400).json({
+          success: false,
+          message: "L'assignation doit être attribuée à un collaborateur ajouté, pas à vous-même",
+        });
+      }
+      const memberExists = await ProjectMember.findOne({
+        where: { projet_id, user_id: targetAssignee },
+      });
+      if (!memberExists && targetAssignee !== project.createur_id) {
+        return res.status(400).json({
+          success: false,
+          message: "Le collaborateur assigné doit être un membre ajouté au projet",
+        });
+      }
+    }
+
     const task = await Task.create({
-      titre,
-      description,
-      statut,
-      priorite,
-      assigne_a,
-      echeance,
-      tags,
+      titre: titre.trim(),
+      description: description ? description.trim() : null,
+      statut: ["todo", "in_progress", "review", "done"].includes(statut) ? statut : "todo",
+      priorite: ["basse", "moyenne", "haute", "critique"].includes(priorite) ? priorite : "moyenne",
+      assigne_a: targetAssignee,
+      echeance: echeance || null,
+      tags: Array.isArray(tags) ? tags : [],
       projet_id,
       cree_par: req.user.id,
     });
@@ -156,17 +189,51 @@ exports.updateTask = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Tâche introuvable" });
 
-    // Verify user is project creator
     const project = await Project.findByPk(projet_id);
     if (!project)
       return res
         .status(404)
         .json({ success: false, message: "Projet introuvable" });
-    if (project.createur_id !== req.user.id) {
+
+    // Verify user can modify: creator, project member, task creator, task assignee, or admin
+    const isMember = await ProjectMember.findOne({
+      where: { projet_id, user_id: req.user.id },
+    });
+    const canModify =
+      project.createur_id === req.user.id ||
+      isMember ||
+      task.cree_par === req.user.id ||
+      task.assigne_a === req.user.id ||
+      req.user.role === "admin";
+
+    if (!canModify) {
       return res.status(403).json({
         success: false,
-        message: "Seul le créateur du projet peut modifier les tâches",
+        message: "Accès refusé : vous n'avez pas l'autorisation de modifier cette tâche",
       });
+    }
+
+    // Validation assignation if updated
+    if (req.body.assigne_a !== undefined) {
+      const targetAssignee = req.body.assigne_a ? parseInt(req.body.assigne_a, 10) : null;
+      if (targetAssignee) {
+        if (targetAssignee === req.user.id) {
+          return res.status(400).json({
+            success: false,
+            message: "L'assignation doit être attribuée à un collaborateur ajouté, pas à vous-même",
+          });
+        }
+        const memberExists = await ProjectMember.findOne({
+          where: { projet_id, user_id: targetAssignee },
+        });
+        if (!memberExists && targetAssignee !== project.createur_id) {
+          return res.status(400).json({
+            success: false,
+            message: "Le collaborateur assigné doit être un membre ajouté au projet",
+          });
+        }
+      }
+      req.body.assigne_a = targetAssignee;
     }
 
     const oldStatut = task.statut;
@@ -180,7 +247,7 @@ exports.updateTask = async (req, res) => {
       };
       await logActivity(
         "task_status_changed",
-        `Tâche "${task.titre}" → ${labels[req.body.statut]}`,
+        `Tâche "${task.titre}" → ${labels[req.body.statut] || req.body.statut}`,
         req.user.id,
         task.projet_id,
         task.id,
@@ -211,14 +278,22 @@ exports.deleteTask = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Tâche introuvable" });
 
-    // Verify user is project creator
     const project = await Project.findByPk(projet_id);
     if (!project)
       return res
         .status(404)
         .json({ success: false, message: "Projet introuvable" });
-    if (project.createur_id !== req.user.id) {
-      return res.status(403).json({ success: false, message: "Accès refusé" });
+
+    const canDelete =
+      project.createur_id === req.user.id ||
+      task.cree_par === req.user.id ||
+      req.user.role === "admin";
+
+    if (!canDelete) {
+      return res.status(403).json({
+        success: false,
+        message: "Seul le créateur du projet ou l'auteur de la tâche peut la supprimer",
+      });
     }
 
     await Comment.destroy({ where: { tache_id: task.id } });
@@ -236,6 +311,32 @@ exports.updateStatus = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Tâche introuvable" });
+
+    const project = await Project.findByPk(task.projet_id);
+    if (!project)
+      return res
+        .status(404)
+        .json({ success: false, message: "Projet introuvable" });
+
+    const isMember = await ProjectMember.findOne({
+      where: { projet_id: task.projet_id, user_id: req.user.id },
+    });
+    const canMove =
+      project.createur_id === req.user.id ||
+      isMember ||
+      task.cree_par === req.user.id ||
+      task.assigne_a === req.user.id ||
+      req.user.role === "admin";
+
+    if (!canMove) {
+      return res.status(403).json({ success: false, message: "Accès refusé" });
+    }
+
+    const validStatuses = ["todo", "in_progress", "review", "done"];
+    if (!validStatuses.includes(req.body.statut)) {
+      return res.status(400).json({ success: false, message: "Statut invalide" });
+    }
+
     await task.update({ statut: req.body.statut });
     res.json({ success: true, message: "Statut mis à jour", data: task });
   } catch (err) {

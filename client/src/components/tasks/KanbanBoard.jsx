@@ -342,11 +342,15 @@ export default function KanbanBoard({
         .trello-board-canvas {
           display: flex;
           gap: 16px;
-          align-items: flex-start;
+          align-items: stretch;
           overflow-x: auto;
+          overflow-y: hidden;
           -webkit-overflow-scrolling: touch;
           scroll-snap-type: x mandatory;
-          padding-bottom: 24px;
+          padding-bottom: 10px;
+          flex: 1;
+          min-height: 0;
+          height: 100%;
         }
 
         .trello-list-column {
@@ -355,7 +359,8 @@ export default function KanbanBoard({
           border-radius: var(--radius-lg);
           display: flex;
           flex-direction: column;
-          max-height: calc(100vh - 220px);
+          height: 100%;
+          max-height: 100%;
           flex: 0 0 285px;
           width: 285px;
           scroll-snap-align: start;

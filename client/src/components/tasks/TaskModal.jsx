@@ -7,8 +7,10 @@ export default function TaskModal({
   onSubmit,
   initialData,
   membres,
+  members,
   isLoading,
 }) {
+  const memberList = membres || members || [];
   const [form, setForm] = useState({
     titre: "",
     description: "",
@@ -28,7 +30,7 @@ export default function TaskModal({
         description: initialData.description || "",
         statut: initialData.statut || "todo",
         priorite: initialData.priorite || "moyenne",
-        assigne_a: initialData.assigne_a || "",
+        assigne_a: initialData.assigne_a || initialData.assigne?.id || "",
         echeance: initialData.echeance || "",
         tags: initialData.tags || [],
       });
@@ -58,7 +60,12 @@ export default function TaskModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validate()) onSubmit({ ...form, assigne_a: form.assigne_a || null });
+    if (validate()) {
+      onSubmit({
+        ...form,
+        assigne_a: form.assigne_a ? parseInt(form.assigne_a) : null,
+      });
+    }
   };
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -182,13 +189,13 @@ export default function TaskModal({
                 <label className="form-label">Membre assigné</label>
                 <select
                   className="form-select"
-                  value={form.assigne_a}
+                  value={form.assigne_a || ""}
                   onChange={set("assigne_a")}
                 >
                   <option value="">Non assigné</option>
-                  {membres?.map((m) => (
+                  {memberList.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.nom}
+                      {m.nom} {m.email ? `(${m.email})` : ""}
                     </option>
                   ))}
                 </select>

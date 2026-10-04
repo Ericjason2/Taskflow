@@ -197,6 +197,12 @@ export default function ProjectDetailPage() {
     stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
   const isCreator = currentProject.createur_id === user?.id;
   const memberIds = currentProject.membres?.map((m) => m.id) || [];
+  const projectMembers = [
+    ...(currentProject.createur ? [currentProject.createur] : []),
+    ...(currentProject.membres || []).filter(
+      (m) => m.id !== currentProject.createur?.id,
+    ),
+  ];
 
   return (
     <div className="board-page-container fade-in">
@@ -530,7 +536,7 @@ export default function ProjectDetailPage() {
         onClose={() => setTaskModalOpen(false)}
         onSubmit={handleCreateTask}
         defaultStatus={defaultStatus}
-        members={currentProject.membres || []}
+        members={projectMembers}
         isLoading={saving}
       />
       <TaskModal
@@ -538,7 +544,7 @@ export default function ProjectDetailPage() {
         onClose={() => setEditTask(null)}
         onSubmit={handleEditTask}
         initialData={editTask}
-        members={currentProject.membres || []}
+        members={projectMembers}
         isLoading={saving}
       />
       <TaskDetailModal
@@ -638,11 +644,22 @@ export default function ProjectDetailPage() {
 
       <style>{`
         .board-page-container {
-          padding: 20px 28px;
+          padding: 16px 24px;
           display: flex;
           flex-direction: column;
-          gap: 16px;
-          min-height: 100vh;
+          gap: 12px;
+          height: 100vh;
+          max-height: 100vh;
+          overflow: hidden;
+          box-sizing: border-box;
+        }
+
+        .board-content-area {
+          flex: 1;
+          min-height: 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
         }
 
         .board-loading-wrapper {
@@ -837,7 +854,9 @@ export default function ProjectDetailPage() {
         /* Table View */
         .trello-table-view {
           padding: 0;
-          overflow: hidden;
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
         }
 
         .table-header-row {
@@ -931,6 +950,9 @@ export default function ProjectDetailPage() {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 20px;
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
         }
 
         .metric-title {
@@ -1056,12 +1078,20 @@ export default function ProjectDetailPage() {
 
         @media (max-width: 820px) {
           .board-page-container {
-            padding: 16px 12px;
+            height: calc(100vh - 56px);
+            max-height: calc(100vh - 56px);
+            padding: 10px 12px;
+            gap: 8px;
+            overflow: hidden;
           }
           .trello-board-header {
             flex-direction: column;
             align-items: stretch;
-            gap: 12px;
+            gap: 8px;
+            padding-bottom: 8px;
+          }
+          .board-main-title {
+            font-size: 17px;
           }
           .board-header-right {
             justify-content: space-between;
@@ -1070,7 +1100,8 @@ export default function ProjectDetailPage() {
           .board-sub-ribbon {
             flex-direction: column;
             align-items: stretch;
-            gap: 10px;
+            gap: 8px;
+            padding: 6px 10px;
           }
           .board-search-box {
             min-width: 100%;
@@ -1078,6 +1109,9 @@ export default function ProjectDetailPage() {
           }
           .board-filter-select {
             width: 100%;
+          }
+          .board-quick-stats {
+            display: none;
           }
         }
       `}</style>

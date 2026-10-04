@@ -76,7 +76,23 @@ export default function LoginPage() {
                 onClick={() => fillDemo("alice@taskflow.io", "membre123")}
               >
                 <User size={12} color="#10b981" />
-                <span>Alice (Membre)</span>
+                <span>Alice</span>
+              </button>
+              <button
+                type="button"
+                className="demo-chip"
+                onClick={() => fillDemo("bob@taskflow.io", "membre123")}
+              >
+                <User size={12} color="#0284c7" />
+                <span>Bob</span>
+              </button>
+              <button
+                type="button"
+                className="demo-chip"
+                onClick={() => fillDemo("claire@taskflow.io", "membre123")}
+              >
+                <User size={12} color="#ec4899" />
+                <span>Claire</span>
               </button>
             </div>
           </div>

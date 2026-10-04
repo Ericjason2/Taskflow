@@ -115,29 +115,53 @@ async function initializeDB() {
     await sequelize.sync({ force: false });
     console.log("🗄️  Base de données synchronisée");
 
-    // Create or reset admin account
+    // Initialize all demo accounts
     const { User } = require("./models/associations");
-    const adminEmail = "admin@taskflow.io";
-    const adminPassword = "admin123";
-
-    const existingAdmin = await User.findOne({ where: { email: adminEmail } });
-
-    if (existingAdmin) {
-      // Update admin password AND role to ensure it's correctly set
-      await existingAdmin.update({ password: adminPassword, role: "admin" });
-      console.log(
-        "👤 Compte admin mis à jour: admin@taskflow.io / admin123 (Rôle: admin)",
-      );
-    } else {
-      // Create new admin
-      await User.create({
+    const demoAccounts = [
+      {
         nom: "Admin TaskFlow",
-        email: adminEmail,
-        password: adminPassword,
+        email: "admin@taskflow.io",
+        password: "admin123",
         role: "admin",
         bio: "Administrateur de la plateforme TaskFlow",
-      });
-      console.log("👤 Compte admin créé: admin@taskflow.io / admin123");
+      },
+      {
+        nom: "Alice Martin",
+        email: "alice@taskflow.io",
+        password: "membre123",
+        role: "membre",
+        bio: "Développeuse Frontend Senior",
+      },
+      {
+        nom: "Bob Dupont",
+        email: "bob@taskflow.io",
+        password: "membre123",
+        role: "membre",
+        bio: "Développeur Backend & DevOps",
+      },
+      {
+        nom: "Claire Leblanc",
+        email: "claire@taskflow.io",
+        password: "membre123",
+        role: "membre",
+        bio: "Designer UX/UI",
+      },
+    ];
+
+    for (const acc of demoAccounts) {
+      const existing = await User.findOne({ where: { email: acc.email } });
+      if (existing) {
+        await existing.update({
+          password: acc.password,
+          role: acc.role,
+          nom: acc.nom,
+          bio: acc.bio,
+        });
+        console.log(`👤 Compte mis à jour: ${acc.email} (${acc.role})`);
+      } else {
+        await User.create(acc);
+        console.log(`👤 Compte créé: ${acc.email} (${acc.role})`);
+      }
     }
   } catch (err) {
     console.error("❌ Erreur lors de l'initialisation:", err);

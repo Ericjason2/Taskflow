@@ -2,9 +2,16 @@ import { io } from 'socket.io-client';
 
 let socket = null;
 
+const getSocketURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "");
+  }
+  return "http://localhost:5000";
+};
+
 export const getSocket = () => {
   if (!socket) {
-    socket = io('http://localhost:5000', { autoConnect: false });
+    socket = io(getSocketURL(), { autoConnect: false });
   }
   return socket;
 };

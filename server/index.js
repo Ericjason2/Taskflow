@@ -22,6 +22,12 @@ const getAllowedOrigins = () => {
   const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
   const origins = [clientUrl];
 
+  // In development, also allow any localhost/127.0.0.1 port (e.g. 5173, 5174, 5175...)
+  if (process.env.NODE_ENV !== "production") {
+    origins.push(/^http:\/\/localhost:\d+$/);
+    origins.push(/^http:\/\/127\.0\.0\.1:\d+$/);
+  }
+
   // In production, also allow all *.vercel.app domains (for Vercel deployments)
   if (process.env.NODE_ENV === "production") {
     origins.push(/\.vercel\.app$/);
@@ -141,11 +147,14 @@ async function initializeDB() {
 
 initializeDB()
   .then(() => {
-    server.listen(PORT, () => {
-      console.log(`🚀 Serveur TaskFlow démarré sur http://localhost:${PORT}`);
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Serveur TaskFlow démarré sur le port ${PORT}`);
       console.log(`📡 Socket.io actif`);
       console.log(`🌐 Environnement: ${process.env.NODE_ENV || "development"}`);
     });
+    // Render load balancer recommendations
+    server.keepAliveTimeout = 120 * 1000;
+    server.headersTimeout = 120 * 1000;
   })
   .catch((err) => {
     console.error("❌ Erreur de connexion BDD:", err);

@@ -4,6 +4,8 @@
   "description": "Plateforme de gestion de projets collaboratifs",
   "private": true,
   "scripts": {
+    "start": "cd server && node index.js",
+    "build": "cd server && npm install",
     "install:server": "cd server && npm install",
     "install:client": "cd client && npm install",
     "install:all": "npm run install:server && npm run install:client",

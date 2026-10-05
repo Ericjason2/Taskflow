@@ -1,4 +1,4 @@
-# TaskFlow — Plateforme de Gestion de Projets Collaboratifs
+# TaskFlow — Plateforme de Gestion de Projets Collaboratifs (MVP)
 
 Une plateforme web moderne, fluide et collaborative pour gérer des projets d'équipe avec une expérience inspirée de Trello, des vues multiples (Kanban, Liste, Calendrier, Métriques), une synchronisation temps réel par WebSockets, des automatisations de règles et une conception responsive mobile-first propulsée par **Tailwind CSS v4**.
 

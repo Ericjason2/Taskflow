@@ -19,6 +19,7 @@ import useAuthStore from "../store/authStore";
 import ProjectCard from "../components/projects/ProjectCard";
 import ProjectModal from "../components/projects/ProjectModal";
 import ConfirmModal from "../components/common/ConfirmModal";
+import { ProjectListSkeleton } from "../components/common/Skeleton";
 import toast from "react-hot-toast";
 
 export default function ProjectsPage() {
@@ -267,10 +268,7 @@ export default function ProjectsPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="loading-state">
-          <span className="spinner" />
-          <p>Chargement de vos tableaux...</p>
-        </div>
+        <ProjectListSkeleton />
       ) : projects.length === 0 ? (
         <div className="empty-boards-state">
           <div className="empty-icon-bubble">

@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs-20_x"]
 
 [phases.install]
-cmds = ["cd server && npm install"]
+cmds = ["node -e \"const cp=require('child_process'), fs=require('fs'); if(fs.existsSync('server')){cp.execSync('cd server && npm install', {stdio:'inherit'});} cp.execSync('npm install', {stdio:'inherit'});\""]
 
 [start]
-cmd = "cd server && node index.js"
+cmd = "node -e \"if(require('fs').existsSync('server')){process.chdir('server');} require('./index.js');\""

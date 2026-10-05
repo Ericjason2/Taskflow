@@ -29,6 +29,7 @@ import {
 import useProjectStore from "../store/projectStore";
 import useAuthStore from "../store/authStore";
 import UserAvatar from "../components/common/UserAvatar";
+import { DashboardSkeleton } from "../components/common/Skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -114,6 +115,10 @@ export default function DashboardPage() {
       border: "rgba(239, 68, 68, 0.2)",
     },
   ];
+
+  if (!stats) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="page-container fade-in">

@@ -39,6 +39,7 @@ import TaskModal from "../components/tasks/TaskModal";
 import TaskDetailModal from "../components/tasks/TaskDetailModal";
 import ConfirmModal from "../components/common/ConfirmModal";
 import UserAvatar from "../components/common/UserAvatar";
+import { BoardSkeleton } from "../components/common/Skeleton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import toast from "react-hot-toast";
@@ -242,12 +243,7 @@ export default function ProjectDetailPage() {
   };
 
   if (isLoading || !currentProject) {
-    return (
-      <div className="board-loading-wrapper">
-        <span className="spinner" />
-        <p>Ouverture du tableau...</p>
-      </div>
-    );
+    return <BoardSkeleton />;
   }
 
   const stats = {

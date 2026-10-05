@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileHeader from "./MobileHeader";
+import AppTopBar from "./AppTopBar";
 import useAuthStore from "../../store/authStore";
 import useNotificationStore from "../../store/notificationStore";
 import { connectSocket, joinUser, getSocket } from "../../services/socket";
@@ -39,10 +40,13 @@ export default function AppLayout() {
   return (
     <div className="app-layout">
       <Sidebar />
+      <div className="app-main-wrapper">
+        <AppTopBar />
+        <main className="main-content">
+          <Outlet />
+        </main>
+      </div>
       <MobileHeader />
-      <main className="main-content">
-        <Outlet />
-      </main>
     </div>
   );
 }

@@ -14,8 +14,6 @@ import {
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
-import NotificationDropdown from "../common/NotificationDropdown";
-import ThemeToggle from "../common/ThemeToggle";
 import toast from "react-hot-toast";
 
 const navItems = [
@@ -51,18 +49,13 @@ export default function Sidebar() {
       <div className="sidebar-header">
         <Link to="/dashboard" className="sidebar-brand">
           <div className="brand-icon">
-            <Kanban size={18} strokeWidth={2.4} />
+            <Kanban size={20} strokeWidth={2.4} />
           </div>
           <div className="brand-text">
             <span className="brand-name">TaskFlow</span>
-            <span className="brand-badge">Workspace</span>
+            <span className="brand-sub">Espace d'équipe</span>
           </div>
         </Link>
-
-        <div className="sidebar-header-actions">
-          <NotificationDropdown />
-          <ThemeToggle />
-        </div>
       </div>
 
       {/* Main Navigation */}
@@ -169,61 +162,60 @@ export default function Sidebar() {
         }
 
         .sidebar-header {
-          padding: 16px 14px;
+          padding: 18px 16px;
           border-bottom: 1px solid var(--border);
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 6px;
-        }
-
-        .sidebar-header-actions {
-          display: flex;
-          align-items: center;
-          gap: 5px;
         }
 
         .sidebar-brand {
           display: flex;
           align-items: center;
-          gap: 9px;
-          min-width: 0;
+          gap: 12px;
+          text-decoration: none;
+          width: 100%;
+          transition: opacity 0.15s ease;
+        }
+
+        .sidebar-brand:hover {
+          opacity: 0.92;
         }
 
         .brand-icon {
-          width: 32px;
-          height: 32px;
-          background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          width: 36px;
+          height: 36px;
+          flex-shrink: 0;
+          background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
           color: #ffffff;
-          border-radius: var(--radius-md);
+          border-radius: 9px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+          box-shadow: 0 3px 8px rgba(37, 99, 235, 0.25);
         }
 
         .brand-text {
           display: flex;
-          align-items: center;
-          gap: 6px;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
         }
 
         .brand-name {
           font-family: var(--font-logo);
           font-weight: 800;
-          font-size: 17px;
-          letter-spacing: -0.02em;
+          font-size: 17.5px;
+          letter-spacing: -0.025em;
           color: var(--text-primary);
+          line-height: 1.15;
         }
 
-        .brand-badge {
-          font-size: 10px;
+        .brand-sub {
+          font-size: 10.5px;
           font-weight: 600;
-          color: var(--accent);
-          background: var(--accent-subtle);
-          padding: 1px 6px;
-          border-radius: 9999px;
-          border: 1px solid var(--accent-border);
+          color: var(--text-muted);
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
         }
 
         .sidebar-content {

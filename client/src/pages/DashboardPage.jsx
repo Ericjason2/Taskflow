@@ -643,8 +643,29 @@ export default function DashboardPage() {
       </div>
 
       <style>{`
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 20px;
+        }
+        @media (max-width: 1100px) {
+          .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+          }
+        }
+        @media (max-width: 600px) {
+          .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+          }
+        }
+        .stat-card:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--card-shadow-hover);
+        }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; gap: 20px; } }
       `}</style>
     </div>
   );

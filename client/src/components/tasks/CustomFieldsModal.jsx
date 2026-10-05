@@ -66,7 +66,7 @@ export default function CustomFieldsModal({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { data } = await projectAPI.updateProject(project.id, {
+      const { data } = await projectAPI.update(project.id, {
         custom_fields_config: fields,
       });
       toast.success("Champs personnalisés enregistrés");

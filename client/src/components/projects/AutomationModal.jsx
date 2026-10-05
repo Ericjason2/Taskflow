@@ -71,7 +71,7 @@ export default function AutomationModal({
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { data } = await projectAPI.updateProject(project.id, {
+      const { data } = await projectAPI.update(project.id, {
         automations: activeRules,
       });
       toast.success("Règles d'automatisation mises à jour");

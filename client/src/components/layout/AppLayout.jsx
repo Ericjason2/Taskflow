@@ -21,10 +21,15 @@ export default function AppLayout() {
       joinUser(user.id);
       fetchNotifications();
 
+      const seenNotifs = new Set();
       const handleNotif = (notif) => {
+        if (!notif) return;
+        const nid = notif.id || notif.createdAt;
+        if (seenNotifs.has(nid)) return;
+        seenNotifs.add(nid);
         addIncomingNotification(notif);
         toast(notif.message, {
-          id: `notif-${notif.id || Date.now()}`,
+          id: `notif-${nid}`,
           duration: 4000,
         });
       };

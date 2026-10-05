@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const { Notification, User, Project, Task } = require("../models/associations");
 
 // Helper: Create a notification and broadcast via Socket.io
@@ -32,7 +33,6 @@ exports.sendNotification = async ({
     });
     if (io) {
       io.to(`user_${userId}`).emit("new_notification", full);
-      io.emit(`notif_user_${userId}`, full);
     }
     return full;
   } catch (err) {
@@ -56,7 +56,10 @@ exports.getNotifications = async (req, res) => {
     });
 
     const unreadCount = await Notification.count({
-      where: { user_id: req.user.id, lu: false },
+      where: {
+        user_id: req.user.id,
+        [Op.or]: [{ lu: false }, { lu: 0 }, { lu: null }],
+      },
     });
 
     res.json({
@@ -72,8 +75,12 @@ exports.getNotifications = async (req, res) => {
 // PUT /api/notifications/:id/read
 exports.markAsRead = async (req, res) => {
   try {
+    const notifId = parseInt(req.params.id, 10);
+    if (isNaN(notifId)) {
+      return res.status(400).json({ success: false, message: "ID invalide" });
+    }
     const notif = await Notification.findOne({
-      where: { id: req.params.id, user_id: req.user.id },
+      where: { id: notifId, user_id: req.user.id },
     });
     if (!notif) {
       return res.status(404).json({ success: false, message: "Notification introuvable" });
@@ -90,7 +97,7 @@ exports.markAllAsRead = async (req, res) => {
   try {
     await Notification.update(
       { lu: true },
-      { where: { user_id: req.user.id, lu: false } }
+      { where: { user_id: req.user.id } }
     );
     res.json({ success: true, message: "Toutes les notifications sont marquées comme lues" });
   } catch (err) {
@@ -101,8 +108,12 @@ exports.markAllAsRead = async (req, res) => {
 // DELETE /api/notifications/:id
 exports.deleteNotification = async (req, res) => {
   try {
+    const notifId = parseInt(req.params.id, 10);
+    if (isNaN(notifId)) {
+      return res.status(400).json({ success: false, message: "ID invalide" });
+    }
     const notif = await Notification.findOne({
-      where: { id: req.params.id, user_id: req.user.id },
+      where: { id: notifId, user_id: req.user.id },
     });
     if (!notif) {
       return res.status(404).json({ success: false, message: "Notification introuvable" });

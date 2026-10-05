@@ -1,6 +1,17 @@
 import { create } from "zustand";
 import { notificationAPI } from "../services/api";
 
+const isNotificationUnread = (notif) => {
+  if (!notif) return false;
+  return (
+    notif.lu === false ||
+    notif.lu === 0 ||
+    notif.lu === "0" ||
+    notif.lu === "false" ||
+    !notif.lu
+  );
+};
+
 const useNotificationStore = create((set, get) => ({
   notifications: [],
   unreadCount: 0,
@@ -14,9 +25,14 @@ const useNotificationStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       const { data } = await notificationAPI.getAll();
+      const list = data.data || [];
+      const computedUnread = list.filter(isNotificationUnread).length;
       set({
-        notifications: data.data || [],
-        unreadCount: data.unreadCount || 0,
+        notifications: list,
+        unreadCount:
+          typeof data.unreadCount === "number"
+            ? data.unreadCount
+            : computedUnread,
         isLoading: false,
       });
     } catch (_) {
@@ -25,19 +41,20 @@ const useNotificationStore = create((set, get) => ({
   },
 
   markAsRead: async (id) => {
+    const targetId = Number(id);
     // Optimistic instant UI update
     set((s) => {
-      const notif = s.notifications.find((n) => n.id === id);
-      const wasUnread = notif && !notif.lu;
+      const notif = s.notifications.find((n) => Number(n.id) === targetId);
+      const wasUnread = isNotificationUnread(notif);
       return {
         notifications: s.notifications.map((n) =>
-          n.id === id ? { ...n, lu: true } : n
+          Number(n.id) === targetId ? { ...n, lu: true } : n
         ),
         unreadCount: wasUnread ? Math.max(0, s.unreadCount - 1) : s.unreadCount,
       };
     });
     try {
-      await notificationAPI.markAsRead(id);
+      await notificationAPI.markAsRead(targetId);
     } catch (_) {}
   },
 
@@ -53,10 +70,17 @@ const useNotificationStore = create((set, get) => ({
   },
 
   addIncomingNotification: (notification) => {
-    set((s) => ({
-      notifications: [notification, ...s.notifications],
-      unreadCount: s.unreadCount + 1,
-    }));
+    if (!notification || !notification.id) return;
+    const targetId = Number(notification.id);
+    set((s) => {
+      if (s.notifications.some((n) => Number(n.id) === targetId)) {
+        return s;
+      }
+      return {
+        notifications: [notification, ...s.notifications],
+        unreadCount: s.unreadCount + 1,
+      };
+    });
   },
 }));
 

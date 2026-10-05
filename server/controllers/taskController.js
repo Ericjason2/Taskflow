@@ -325,6 +325,21 @@ exports.createTask = async (req, res) => {
       projet_id,
       cree_par: req.user.id,
     });
+
+    // Apply board automations on newly created task
+    await applyBoardAutomations({
+      task,
+      project,
+      changes: {
+        ...req.body,
+        assignes: targetAssignees,
+        assigne_a: targetAssignees.length > 0 ? targetAssignees[0] : null,
+      },
+      oldValues: {},
+      user: req.user,
+      io: req.io,
+    });
+
     const full = await Task.findByPk(task.id, {
       include: [
         {

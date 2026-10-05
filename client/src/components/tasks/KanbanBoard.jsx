@@ -68,6 +68,7 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
     task.echeance &&
     new Date(task.echeance) < new Date() &&
     task.statut !== "done";
+  const isDone = task.statut === "done";
   const isAssignee =
     task.assigne_a === currentUserId ||
     (Array.isArray(task.assignes) && task.assignes.includes(currentUserId)) ||

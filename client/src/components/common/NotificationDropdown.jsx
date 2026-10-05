@@ -42,9 +42,20 @@ export default function NotificationDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
+  const isNotificationUnread = (notif) => {
+    if (!notif) return false;
+    return (
+      notif.lu === false ||
+      notif.lu === 0 ||
+      notif.lu === "0" ||
+      notif.lu === "false" ||
+      !notif.lu
+    );
+  };
+
   const handleNotificationClick = async (notif) => {
-    if (!notif.lu) {
-      await markAsRead(notif.id);
+    if (isNotificationUnread(notif)) {
+      markAsRead(notif.id);
     }
     setIsOpen(false);
     if (notif.projet_id) {
@@ -52,11 +63,18 @@ export default function NotificationDropdown() {
     }
   };
 
+  const handleTriggerClick = () => {
+    if (!isOpen) {
+      fetchNotifications();
+    }
+    toggleOpen();
+  };
+
   return (
     <div className="notif-dropdown-wrapper" ref={dropdownRef}>
       <button
         className="notif-trigger-btn"
-        onClick={toggleOpen}
+        onClick={handleTriggerClick}
         title="Notifications"
         aria-label="Centre de notifications"
       >
@@ -96,45 +114,48 @@ export default function NotificationDropdown() {
                 <p>Aucune notification pour le moment</p>
               </div>
             ) : (
-              notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  className={`notif-item ${!notif.lu ? "unread" : ""}`}
-                  onClick={() => handleNotificationClick(notif)}
-                >
-                  <UserAvatar
-                    user={notif.expediteur}
-                    size="sm"
-                    className="notif-avatar"
-                  />
-                  <div className="notif-content">
-                    <p className="notif-item-title">{notif.titre}</p>
-                    <p className="notif-item-msg">{notif.message}</p>
-                    <span className="notif-time">
-                      {formatDistanceToNow(new Date(notif.createdAt), {
-                        addSuffix: true,
-                        locale: fr,
-                      })}
-                    </span>
+              notifications.map((notif) => {
+                const unread = isNotificationUnread(notif);
+                return (
+                  <div
+                    key={notif.id}
+                    className={`notif-item ${unread ? "unread" : ""}`}
+                    onClick={() => handleNotificationClick(notif)}
+                  >
+                    <UserAvatar
+                      user={notif.expediteur}
+                      size="sm"
+                      className="notif-avatar"
+                    />
+                    <div className="notif-content">
+                      <p className="notif-item-title">{notif.titre}</p>
+                      <p className="notif-item-msg">{notif.message}</p>
+                      <span className="notif-time">
+                        {formatDistanceToNow(new Date(notif.createdAt), {
+                          addSuffix: true,
+                          locale: fr,
+                        })}
+                      </span>
+                    </div>
+                    <div className="notif-item-actions">
+                      {unread && (
+                        <button
+                          className="notif-item-read-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAsRead(notif.id);
+                          }}
+                          title="Marquer comme lue"
+                          aria-label="Marquer comme lue"
+                        >
+                          <Check size={13} />
+                        </button>
+                      )}
+                      {unread && <span className="unread-dot" />}
+                    </div>
                   </div>
-                  <div className="notif-item-actions">
-                    {!notif.lu && (
-                      <button
-                        className="notif-item-read-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          markAsRead(notif.id);
-                        }}
-                        title="Marquer comme lue"
-                        aria-label="Marquer comme lue"
-                      >
-                        <Check size={13} />
-                      </button>
-                    )}
-                    {!notif.lu && <span className="unread-dot" />}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

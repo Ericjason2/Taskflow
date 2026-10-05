@@ -26,7 +26,7 @@ const logActivity = async (
       tache_id: tacheId,
       meta,
     });
-  } catch (_) {}
+  } catch (_) { }
 };
 
 exports.getProjects = async (req, res) => {
@@ -248,14 +248,8 @@ exports.updateProject = async (req, res) => {
     if (!project)
       return res
         .status(404)
-    // Allow creator, members, or admin to update project
-    const isMember = await ProjectMember.findOne({
-      where: { projet_id: req.params.id, user_id: req.user.id },
-    });
-    const canEdit =
-      project.createur_id === req.user.id || isMember || req.user.role === "admin";
-
-    if (!canEdit) {
+        .json({ success: false, message: "Projet introuvable" });
+    if (project.createur_id !== req.user.id) {
       return res.status(403).json({
         success: false,
         message: "Accès refusé : vous devez être membre du projet pour modifier ces paramètres",

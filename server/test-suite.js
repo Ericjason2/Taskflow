@@ -318,6 +318,24 @@ test("5.3 Alice marks all notifications as read", async () => {
   assert.strictEqual(res.data.success, true);
 });
 
+test("5.4 Alice deletes a single notification", async () => {
+  const res = await request(`/notifications/${aliceNotificationId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${aliceToken}` },
+  });
+  assert.strictEqual(res.status, 200, "Deleting notification should return 200");
+  assert.strictEqual(res.data.success, true);
+});
+
+test("5.5 Bob clears all notifications via clear-all", async () => {
+  const res = await request("/notifications/clear-all", {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${bobToken}` },
+  });
+  assert.strictEqual(res.status, 200, "Clearing all notifications should return 200");
+  assert.strictEqual(res.data.success, true);
+});
+
 test("6.1 Deletes test tasks", async () => {
   if (testTaskId) {
     const res = await request(`/projects/${testProjectId}/tasks/${testTaskId}`, {

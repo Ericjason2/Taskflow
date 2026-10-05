@@ -989,7 +989,7 @@ export default function ProjectDetailPage() {
           align-items: center;
           gap: 12px;
           flex-wrap: wrap;
-          background: #ffffff;
+          background: var(--bg-surface);
           padding: 8px 12px;
           border: 1px solid var(--border);
           border-radius: var(--radius-lg);
@@ -1064,7 +1064,7 @@ export default function ProjectDetailPage() {
         .stat-progress-bar {
           width: 70px;
           height: 6px;
-          background: #e2e8f0;
+          background: var(--bg-subtle);
           border-radius: 9999px;
           overflow: hidden;
         }
@@ -1087,7 +1087,7 @@ export default function ProjectDetailPage() {
           display: grid;
           grid-template-columns: 3fr 1.5fr 1.2fr 1.5fr 1.5fr 1fr;
           padding: 10px 16px;
-          background: #f8fafc;
+          background: var(--bg-subtle);
           border-bottom: 1px solid var(--border);
           font-size: 11.5px;
           font-weight: 600;
@@ -1106,7 +1106,7 @@ export default function ProjectDetailPage() {
         }
 
         .table-task-row:hover {
-          background: #f8fafc;
+          background: var(--bg-subtle);
         }
 
         .col-task-title {
@@ -1227,7 +1227,7 @@ export default function ProjectDetailPage() {
 
         .status-metric-bar-track {
           height: 8px;
-          background: #f1f5f9;
+          background: var(--bg-subtle);
           border-radius: 9999px;
           overflow: hidden;
         }

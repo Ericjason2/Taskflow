@@ -469,7 +469,7 @@ export default function ProjectsPage() {
         .status-tabs {
           display: flex;
           gap: 4px;
-          background: #f1f5f9;
+          background: var(--bg-subtle);
           padding: 3px;
           border-radius: var(--radius-md);
           border: 1px solid var(--border);
@@ -491,7 +491,7 @@ export default function ProjectsPage() {
         }
 
         .status-tab.active {
-          background: #ffffff;
+          background: var(--bg-surface);
           color: var(--text-primary);
           font-weight: 600;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -519,7 +519,7 @@ export default function ProjectsPage() {
 
         .view-toggle {
           display: flex;
-          background: #f1f5f9;
+          background: var(--bg-subtle);
           border: 1px solid var(--border);
           border-radius: var(--radius-md);
           padding: 3px;
@@ -542,7 +542,7 @@ export default function ProjectsPage() {
         }
 
         .view-btn.active {
-          background: #ffffff;
+          background: var(--bg-surface);
           color: var(--text-primary);
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
         }
@@ -551,7 +551,7 @@ export default function ProjectsPage() {
           display: flex;
           align-items: center;
           gap: 14px;
-          background: #ffffff;
+          background: var(--bg-surface);
           border: 1px solid var(--border);
           border-radius: var(--radius-lg);
           padding: 12px 16px;
@@ -635,9 +635,9 @@ export default function ProjectsPage() {
 
         /* Trello "+ Créer un tableau" Tile */
         .create-board-tile {
-          border: 2px dashed #cbd5e1;
+          border: 2px dashed var(--border-strong);
           border-radius: var(--radius-lg);
-          background: #f8fafc;
+          background: var(--bg-surface);
           min-height: 180px;
           display: flex;
           align-items: center;
@@ -671,7 +671,7 @@ export default function ProjectsPage() {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background: #e2e8f0;
+          background: var(--bg-subtle);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -691,7 +691,7 @@ export default function ProjectsPage() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          background: #ffffff;
+          background: var(--bg-surface);
           border: 1px dashed var(--border);
           border-radius: var(--radius-xl);
         }

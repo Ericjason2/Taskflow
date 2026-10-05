@@ -1,7 +1,13 @@
-import { useEffect, useRef } from "react";
-import { Bell, CheckCheck, Check, Trash2, ExternalLink, Inbox } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  Bell,
+  CheckCheck,
+  Check,
+  Trash2,
+  Inbox,
+  Filter,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
 import useNotificationStore from "../../store/notificationStore";
 import useAuthStore from "../../store/authStore";
 import { formatDistanceToNow } from "date-fns";
@@ -19,11 +25,13 @@ export default function NotificationDropdown() {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    clearAllNotifications,
   } = useNotificationStore();
 
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  const [filter, setFilter] = useState("all"); // 'all' | 'unread'
 
   useEffect(() => {
     if (user) {
@@ -51,8 +59,6 @@ export default function NotificationDropdown() {
       notif.lu === 0 ||
       notif.lu === "0" ||
       notif.lu === "false" ||
-      notif.lu === null ||
-      notif.lu === undefined ||
       !notif.lu
     );
   };
@@ -67,19 +73,17 @@ export default function NotificationDropdown() {
     }
   };
 
-  const handleMarkAllAsRead = async () => {
-    await markAllAsRead();
-    toast.success("Toutes les notifications sont marquées comme lues", {
-      id: "mark-all-read",
-    });
-  };
-
   const handleTriggerClick = () => {
     if (!isOpen) {
       fetchNotifications();
     }
     toggleOpen();
   };
+
+  const displayedNotifications =
+    filter === "unread"
+      ? notifications.filter(isNotificationUnread)
+      : notifications;
 
   return (
     <div className="notif-dropdown-wrapper" ref={dropdownRef}>
@@ -99,38 +103,77 @@ export default function NotificationDropdown() {
 
       {isOpen && (
         <div className="notif-popover">
+          {/* Header */}
           <div className="notif-header">
             <div className="notif-title-row">
               <span className="notif-title">Notifications</span>
               {unreadCount > 0 && (
-                <span className="notif-count-chip">{unreadCount} non lue{unreadCount > 1 ? "s" : ""}</span>
+                <span className="notif-count-chip">
+                  {unreadCount} non lue{unreadCount > 1 ? "s" : ""}
+                </span>
               )}
             </div>
-            {unreadCount > 0 && (
-              <button
-                className="notif-action-btn"
-                onClick={handleMarkAllAsRead}
-                title="Tout marquer comme lu"
-              >
-                <CheckCheck size={14} />
-                <span>Tout marquer lu</span>
-              </button>
-            )}
+
+            <div className="notif-header-actions">
+              {unreadCount > 0 && (
+                <button
+                  className="notif-action-btn"
+                  onClick={markAllAsRead}
+                  title="Tout marquer comme lu"
+                >
+                  <CheckCheck size={14} />
+                  <span>Tout lire</span>
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  className="notif-action-btn delete-all"
+                  onClick={clearAllNotifications}
+                  title="Effacer toutes les notifications"
+                >
+                  <Trash2 size={13} />
+                  <span>Vider</span>
+                </button>
+              )}
+            </div>
           </div>
 
+          {/* Filter tabs */}
+          {notifications.length > 0 && (
+            <div className="notif-filter-tabs">
+              <button
+                className={`notif-tab ${filter === "all" ? "active" : ""}`}
+                onClick={() => setFilter("all")}
+              >
+                Toutes ({notifications.length})
+              </button>
+              <button
+                className={`notif-tab ${filter === "unread" ? "active" : ""}`}
+                onClick={() => setFilter("unread")}
+              >
+                Non lues ({unreadCount})
+              </button>
+            </div>
+          )}
+
+          {/* List */}
           <div className="notif-list">
-            {notifications.length === 0 ? (
+            {displayedNotifications.length === 0 ? (
               <div className="notif-empty">
-                <Inbox size={28} strokeWidth={1.5} color="var(--text-light)" />
-                <p>Aucune notification pour le moment</p>
+                <Inbox size={30} strokeWidth={1.5} color="var(--text-muted)" />
+                <p>
+                  {filter === "unread"
+                    ? "Aucune notification non lue"
+                    : "Aucune notification pour le moment"}
+                </p>
               </div>
             ) : (
-              notifications.map((notif) => {
+              displayedNotifications.map((notif) => {
                 const unread = isNotificationUnread(notif);
                 return (
                   <div
                     key={notif.id}
-                    className={`notif-item ${unread ? "unread" : ""}`}
+                    className={`notif-item ${unread ? "unread" : "read"}`}
                     onClick={() => handleNotificationClick(notif)}
                   >
                     <UserAvatar
@@ -138,50 +181,58 @@ export default function NotificationDropdown() {
                       size="sm"
                       className="notif-avatar"
                     />
+
                     <div className="notif-content">
-                      <p className="notif-item-title">{notif.titre}</p>
+                      <div className="notif-content-head">
+                        <p className="notif-item-title">{notif.titre}</p>
+                        <span className="notif-time">
+                          {formatDistanceToNow(new Date(notif.createdAt), {
+                            addSuffix: true,
+                            locale: fr,
+                          })}
+                        </span>
+                      </div>
+
                       <p className="notif-item-msg">{notif.message}</p>
-                      <span className="notif-time">
-                        {formatDistanceToNow(new Date(notif.createdAt), {
-                          addSuffix: true,
-                          locale: fr,
-                        })}
-                      </span>
+
+                      <div className="notif-status-line">
+                        {unread ? (
+                          <span className="status-indicator-unread">
+                            <span className="unread-dot" /> Non lue
+                          </span>
+                        ) : (
+                          <span className="status-indicator-read">
+                            <CheckCheck size={12} /> Déjà lue
+                          </span>
+                        )}
+                      </div>
                     </div>
+
                     <div className="notif-item-actions">
                       {unread && (
                         <button
-                          type="button"
-                          className="notif-item-read-btn"
-                          onClick={async (e) => {
+                          className="notif-btn-icon mark-read"
+                          onClick={(e) => {
                             e.stopPropagation();
-                            await markAsRead(notif.id);
-                            toast.success("Notification marquée comme lue", {
-                              id: `read-${notif.id}`,
-                            });
+                            markAsRead(notif.id);
                           }}
                           title="Marquer comme lue"
                           aria-label="Marquer comme lue"
                         >
-                          <Check size={13} />
+                          <Check size={13} strokeWidth={2.5} />
                         </button>
                       )}
                       <button
-                        type="button"
-                        className="notif-item-del-btn"
-                        onClick={async (e) => {
+                        className="notif-btn-icon delete-btn"
+                        onClick={(e) => {
                           e.stopPropagation();
-                          await deleteNotification(notif.id);
-                          toast.success("Notification supprimée", {
-                            id: `del-${notif.id}`,
-                          });
+                          deleteNotification(notif.id);
                         }}
                         title="Supprimer la notification"
                         aria-label="Supprimer la notification"
                       >
                         <Trash2 size={12} />
                       </button>
-                      {unread && <span className="unread-dot" />}
                     </div>
                   </div>
                 );
@@ -208,6 +259,7 @@ export default function NotificationDropdown() {
           display: flex;
           align-items: center;
           justify-content: center;
+          cursor: pointer;
           transition: all var(--transition);
         }
 
@@ -233,15 +285,15 @@ export default function NotificationDropdown() {
           align-items: center;
           justify-content: center;
           border: 2px solid var(--bg-surface);
-          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .notif-popover {
           position: absolute;
           top: calc(100% + 8px);
           right: 0;
-          width: 320px;
-          max-width: 90vw;
+          width: 350px;
+          max-width: 92vw;
           background: var(--bg-surface);
           border: 1px solid var(--border);
           border-radius: var(--radius-lg);
@@ -255,7 +307,7 @@ export default function NotificationDropdown() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 14px;
+          padding: 10px 14px;
           border-bottom: 1px solid var(--border);
           background: var(--bg-subtle);
         }
@@ -281,6 +333,12 @@ export default function NotificationDropdown() {
           font-weight: 600;
         }
 
+        .notif-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
         .notif-action-btn {
           display: inline-flex;
           align-items: center;
@@ -291,10 +349,53 @@ export default function NotificationDropdown() {
           background: none;
           border: none;
           cursor: pointer;
+          padding: 2px 4px;
+          border-radius: var(--radius-xs);
+          transition: opacity var(--transition);
         }
 
         .notif-action-btn:hover {
+          opacity: 0.8;
           text-decoration: underline;
+        }
+
+        .notif-action-btn.delete-all {
+          color: var(--text-muted);
+        }
+
+        .notif-action-btn.delete-all:hover {
+          color: var(--prio-critique);
+        }
+
+        .notif-filter-tabs {
+          display: flex;
+          background: var(--bg-subtle);
+          border-bottom: 1px solid var(--border);
+          padding: 4px 10px;
+          gap: 6px;
+        }
+
+        .notif-tab {
+          font-size: 11.5px;
+          font-weight: 500;
+          padding: 3px 8px;
+          border-radius: var(--radius-sm);
+          border: none;
+          background: transparent;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all var(--transition);
+        }
+
+        .notif-tab:hover {
+          color: var(--text-primary);
+        }
+
+        .notif-tab.active {
+          background: var(--bg-surface);
+          color: var(--text-primary);
+          font-weight: 600;
+          box-shadow: var(--shadow-xs);
         }
 
         .notif-list {
@@ -308,10 +409,10 @@ export default function NotificationDropdown() {
           display: flex;
           align-items: flex-start;
           gap: 10px;
-          padding: 12px 14px;
+          padding: 11px 14px;
           border-bottom: 1px solid var(--border);
           cursor: pointer;
-          transition: background var(--transition);
+          transition: background var(--transition), opacity var(--transition);
           position: relative;
         }
 
@@ -325,27 +426,25 @@ export default function NotificationDropdown() {
 
         .notif-item.unread {
           background: var(--accent-subtle);
+          border-left: 3px solid var(--accent);
+        }
+
+        .notif-item.read {
+          background: var(--bg-surface);
+          border-left: 3px solid transparent;
+          opacity: 0.76;
+        }
+
+        .notif-item.read:hover {
+          opacity: 1;
         }
 
         .notif-avatar {
-          width: 30px;
-          height: 30px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-          color: #ffffff;
-          font-size: 12px;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          justify-content: center;
           flex-shrink: 0;
-          overflow: hidden;
-        }
-
-        .notif-avatar img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+          margin-top: 2px;
         }
 
         .notif-content {
@@ -353,38 +452,71 @@ export default function NotificationDropdown() {
           min-width: 0;
         }
 
+        .notif-content-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+          margin-bottom: 2px;
+        }
+
         .notif-item-title {
           font-size: 12.5px;
           font-weight: 600;
           color: var(--text-primary);
-          margin-bottom: 2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .notif-time {
+          font-size: 10.5px;
+          color: var(--text-muted);
+          flex-shrink: 0;
         }
 
         .notif-item-msg {
           font-size: 12px;
           color: var(--text-secondary);
           line-height: 1.4;
-          margin-bottom: 4px;
+          margin-bottom: 5px;
           word-break: break-word;
         }
 
-        .notif-time {
+        .notif-status-line {
+          display: flex;
+          align-items: center;
           font-size: 10.5px;
+        }
+
+        .status-indicator-unread {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          color: var(--accent);
+          font-weight: 600;
+        }
+
+        .status-indicator-read {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
           color: var(--text-muted);
+          font-weight: 500;
         }
 
         .notif-item-actions {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 4px;
           flex-shrink: 0;
-          margin-top: 4px;
+          margin-top: 2px;
         }
 
-        .notif-item-read-btn {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
+        .notif-btn-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: var(--radius-sm);
           border: 1px solid var(--border);
           background: var(--bg-surface);
           color: var(--text-muted);
@@ -395,40 +527,21 @@ export default function NotificationDropdown() {
           transition: all 0.15s ease;
         }
 
-        .notif-item-read-btn:hover {
+        .notif-btn-icon.mark-read:hover {
           background: var(--accent);
           color: #ffffff;
           border-color: var(--accent);
         }
 
-        .notif-item-del-btn {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          border: 1px solid var(--border);
-          background: var(--bg-surface);
-          color: var(--text-muted);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.15s ease;
-          opacity: 0.6;
-        }
-
-        .notif-item:hover .notif-item-del-btn {
-          opacity: 1;
-        }
-
-        .notif-item-del-btn:hover {
-          background: #ef4444;
-          color: #ffffff;
-          border-color: #ef4444;
+        .notif-btn-icon.delete-btn:hover {
+          background: var(--prio-critique-bg);
+          color: var(--prio-critique);
+          border-color: var(--prio-critique-border);
         }
 
         .unread-dot {
-          width: 7px;
-          height: 7px;
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
           background: var(--accent);
           flex-shrink: 0;

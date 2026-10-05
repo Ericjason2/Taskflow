@@ -222,7 +222,7 @@ export default function ProjectCard({
         }
 
         .trello-board-card:hover {
-          border-color: #cbd5e1;
+          border-color: var(--border-strong);
           box-shadow: var(--shadow-card-hover);
           transform: translateY(-3px);
         }
@@ -345,8 +345,8 @@ export default function ProjectCard({
         }
 
         .extra-badge {
-          background: #e2e8f0 !important;
-          color: #475569 !important;
+          background: var(--bg-subtle) !important;
+          color: var(--text-secondary) !important;
           font-size: 9px !important;
         }
 

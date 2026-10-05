@@ -202,6 +202,19 @@ const populateAssigneesDetails = async (tasks) => {
 exports.getTasks = async (req, res) => {
   try {
     const { projet_id } = req.params;
+
+    const project = await Project.findByPk(projet_id);
+    if (!project) {
+      return res.status(404).json({ success: false, message: "Projet introuvable" });
+    }
+
+    const isMember = await ProjectMember.findOne({
+      where: { projet_id, user_id: req.user.id },
+    });
+    if (project.createur_id !== req.user.id && !isMember && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Accès refusé" });
+    }
+
     const {
       statut,
       assigne_a,

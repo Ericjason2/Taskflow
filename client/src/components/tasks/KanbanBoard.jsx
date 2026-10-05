@@ -542,7 +542,7 @@ export default function KanbanBoard({
         }
 
         .trello-card:hover {
-          border-color: #cbd5e1;
+          border-color: var(--border-strong);
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
           transform: translateY(-1px);
         }
@@ -551,7 +551,7 @@ export default function KanbanBoard({
           box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
           transform: rotate(2deg);
           border-color: var(--accent);
-          background: #ffffff;
+          background: var(--bg-surface);
         }
 
         .card-top-bar {
@@ -589,7 +589,7 @@ export default function KanbanBoard({
           font-size: 10px;
           font-weight: 500;
           color: var(--text-muted);
-          background: #f1f5f9;
+          background: var(--bg-subtle);
           padding: 1px 6px;
           border-radius: 9999px;
           border: 1px solid var(--border);
@@ -622,13 +622,13 @@ export default function KanbanBoard({
         }
 
         .card-action-icon:hover {
-          background: #f1f5f9;
+          background: var(--bg-subtle);
           color: var(--text-primary);
         }
 
         .card-action-icon.danger:hover {
-          background: #fee2e2;
-          color: #ef4444;
+          background: var(--prio-critique-bg);
+          color: var(--prio-critique);
         }
 
         .drag-grip-handle {
@@ -686,22 +686,22 @@ export default function KanbanBoard({
         }
 
         .due-date-pill.normal {
-          background: #f8fafc;
+          background: var(--bg-subtle);
           color: var(--text-muted);
           border: 1px solid var(--border);
         }
 
         .due-date-pill.overdue {
-          background: #fef2f2;
-          color: #dc2626;
-          border: 1px solid #fecaca;
+          background: var(--prio-critique-bg);
+          color: var(--prio-critique);
+          border: 1px solid var(--prio-critique-border);
           font-weight: 600;
         }
 
         .due-date-pill.done {
-          background: #f0fdf4;
-          color: #16a34a;
-          border: 1px solid #bbf7d0;
+          background: var(--done-bg);
+          color: var(--done-color);
+          border: 1px solid var(--done-border);
         }
 
         .comment-badge {
@@ -762,7 +762,7 @@ export default function KanbanBoard({
           justify-content: center;
           gap: 6px;
           padding: 16px 12px;
-          border: 1px dashed #cbd5e1;
+          border: 1px dashed var(--border-strong);
           border-radius: var(--radius-md);
           font-size: 12px;
           color: var(--text-muted);
@@ -774,7 +774,7 @@ export default function KanbanBoard({
         .empty-column-placeholder:hover {
           border-color: var(--accent);
           color: var(--accent);
-          background: #eff6ff;
+          background: var(--accent-subtle);
         }
 
         .column-footer {
@@ -798,7 +798,7 @@ export default function KanbanBoard({
         }
 
         .trello-add-card-btn:hover {
-          background: #e2e8f0;
+          background: var(--bg-subtle);
           color: var(--text-primary);
         }
 

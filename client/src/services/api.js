@@ -108,6 +108,7 @@ export const notificationAPI = {
   markAsRead: (id) => api.put(`/notifications/${id}/read`),
   markAllAsRead: () => api.put("/notifications/read-all"),
   delete: (id) => api.delete(`/notifications/${id}`),
+  clearAll: () => api.delete("/notifications/clear-all"),
 };
 
 export default api;

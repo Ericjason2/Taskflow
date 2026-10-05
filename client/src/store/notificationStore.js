@@ -54,14 +54,8 @@ const useNotificationStore = create((set, get) => ({
       };
     });
     try {
-      const res = await notificationAPI.markAsRead(targetId);
-      if (res?.data?.unreadCount !== undefined) {
-        set({ unreadCount: res.data.unreadCount });
-      }
-    } catch (err) {
-      console.error("Erreur markAsRead:", err);
-      get().fetchNotifications();
-    }
+      await notificationAPI.markAsRead(targetId);
+    } catch (_) {}
   },
 
   markAllAsRead: async () => {
@@ -71,14 +65,8 @@ const useNotificationStore = create((set, get) => ({
       unreadCount: 0,
     }));
     try {
-      const res = await notificationAPI.markAllAsRead();
-      if (res?.data?.unreadCount !== undefined) {
-        set({ unreadCount: res.data.unreadCount });
-      }
-    } catch (err) {
-      console.error("Erreur markAllAsRead:", err);
-      get().fetchNotifications();
-    }
+      await notificationAPI.markAllAsRead();
+    } catch (_) {}
   },
 
   deleteNotification: async (id) => {
@@ -92,14 +80,15 @@ const useNotificationStore = create((set, get) => ({
       };
     });
     try {
-      const res = await notificationAPI.delete(targetId);
-      if (res?.data?.unreadCount !== undefined) {
-        set({ unreadCount: res.data.unreadCount });
-      }
-    } catch (err) {
-      console.error("Erreur deleteNotification:", err);
-      get().fetchNotifications();
-    }
+      await notificationAPI.delete(targetId);
+    } catch (_) {}
+  },
+
+  clearAllNotifications: async () => {
+    set({ notifications: [], unreadCount: 0 });
+    try {
+      await notificationAPI.clearAll();
+    } catch (_) {}
   },
 
   addIncomingNotification: (notification) => {

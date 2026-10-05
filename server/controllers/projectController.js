@@ -236,6 +236,20 @@ exports.getProject = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Projet introuvable" });
+
+    const isMember =
+      project.createur_id === req.user.id ||
+      (Array.isArray(project.membres) &&
+        project.membres.some((m) => m.id === req.user.id)) ||
+      req.user.role === "admin";
+
+    if (!isMember) {
+      return res.status(403).json({
+        success: false,
+        message: "Accès refusé : vous n'êtes pas membre de ce projet",
+      });
+    }
+
     res.json({ success: true, data: project });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -103,6 +103,11 @@
 
   /* Sidebar */
   --sidebar-width: 260px;
+
+  /* Aliases & Fallbacks */
+  --bg-body: var(--bg-base);
+  --bg-card: var(--bg-surface);
+  --border-subtle: var(--border);
 }
 
 [data-theme="dark"] {
@@ -172,6 +177,11 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
   --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
   --shadow-card-hover: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+
+  /* Aliases & Fallbacks */
+  --bg-body: var(--bg-base);
+  --bg-card: var(--bg-surface);
+  --border-subtle: var(--border);
 }
 
 *,
@@ -411,8 +421,10 @@ select {
 }
 
 .btn-danger:hover {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--prio-critique-bg);
+  color: var(--prio-critique);
+  border-color: var(--prio-critique);
+  filter: brightness(1.1);
 }
 
 .btn-sm {
@@ -457,7 +469,7 @@ select {
 .card-hover:hover {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
-  border-color: #cbd5e1;
+  border-color: var(--border-strong);
 }
 
 /* Form controls (shadcn style) */
@@ -505,6 +517,12 @@ select {
   resize: vertical;
 }
 
+.form-select option,
+select option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
 /* Badges (shadcn pills) */
 .badge {
   display: inline-flex;
@@ -545,25 +563,25 @@ select {
 
 .badge-basse {
   background: var(--prio-basse-bg);
-  color: #047857;
+  color: var(--prio-basse);
   border-color: var(--prio-basse-border);
 }
 
 .badge-moyenne {
   background: var(--prio-moyenne-bg);
-  color: #0369a1;
+  color: var(--prio-moyenne);
   border-color: var(--prio-moyenne-border);
 }
 
 .badge-haute {
   background: var(--prio-haute-bg);
-  color: #b45309;
+  color: var(--prio-haute);
   border-color: var(--prio-haute-border);
 }
 
 .badge-critique {
   background: var(--prio-critique-bg);
-  color: #b91c1c;
+  color: var(--prio-critique);
   border-color: var(--prio-critique-border);
 }
 
@@ -718,12 +736,12 @@ select {
 }
 
 .dropdown-item.danger {
-  color: #ef4444;
+  color: var(--prio-critique);
 }
 
 .dropdown-item.danger:hover {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--prio-critique-bg);
+  color: var(--prio-critique);
 }
 
 /* Tabs */

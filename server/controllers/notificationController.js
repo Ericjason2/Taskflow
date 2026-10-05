@@ -44,11 +44,8 @@ exports.sendNotification = async ({
 // GET /api/notifications
 exports.getNotifications = async (req, res) => {
   try {
-    const whereClause =
-      req.user.role === "admin" ? {} : { user_id: req.user.id };
-
     const notifications = await Notification.findAll({
-      where: whereClause,
+      where: { user_id: req.user.id },
       include: [
         { model: User, as: "expediteur", attributes: ["id", "nom", "email", "avatar"] },
         { model: Project, as: "projet", attributes: ["id", "titre", "couleur"] },
@@ -60,7 +57,7 @@ exports.getNotifications = async (req, res) => {
 
     const unreadCount = await Notification.count({
       where: {
-        ...whereClause,
+        user_id: req.user.id,
         [Op.or]: [{ lu: false }, { lu: 0 }, { lu: null }],
       },
     });
@@ -82,34 +79,16 @@ exports.markAsRead = async (req, res) => {
     if (isNaN(notifId)) {
       return res.status(400).json({ success: false, message: "ID invalide" });
     }
-    const whereClause =
+    const where =
       req.user.role === "admin"
         ? { id: notifId }
         : { id: notifId, user_id: req.user.id };
-
-    const notif = await Notification.findOne({
-      where: whereClause,
-    });
+    const notif = await Notification.findOne({ where });
     if (!notif) {
       return res.status(404).json({ success: false, message: "Notification introuvable" });
     }
     await notif.update({ lu: true });
-
-    const countWhere =
-      req.user.role === "admin" ? {} : { user_id: req.user.id };
-    const unreadCount = await Notification.count({
-      where: {
-        ...countWhere,
-        [Op.or]: [{ lu: false }, { lu: 0 }, { lu: null }],
-      },
-    });
-
-    res.json({
-      success: true,
-      message: "Notification marquée comme lue",
-      data: notif,
-      unreadCount,
-    });
+    res.json({ success: true, message: "Notification marquée comme lue", data: notif });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -118,18 +97,11 @@ exports.markAsRead = async (req, res) => {
 // PUT /api/notifications/read-all
 exports.markAllAsRead = async (req, res) => {
   try {
-    const whereClause =
-      req.user.role === "admin" ? {} : { user_id: req.user.id };
-
     await Notification.update(
       { lu: true },
-      { where: whereClause }
+      { where: { user_id: req.user.id } }
     );
-    res.json({
-      success: true,
-      message: "Toutes les notifications sont marquées comme lues",
-      unreadCount: 0,
-    });
+    res.json({ success: true, message: "Toutes les notifications sont marquées comme lues" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -142,29 +114,26 @@ exports.deleteNotification = async (req, res) => {
     if (isNaN(notifId)) {
       return res.status(400).json({ success: false, message: "ID invalide" });
     }
-    const whereClause =
+    const where =
       req.user.role === "admin"
         ? { id: notifId }
         : { id: notifId, user_id: req.user.id };
-
-    const notif = await Notification.findOne({
-      where: whereClause,
-    });
+    const notif = await Notification.findOne({ where });
     if (!notif) {
       return res.status(404).json({ success: false, message: "Notification introuvable" });
     }
     await notif.destroy();
+    res.json({ success: true, message: "Notification supprimée" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
-    const countWhere =
-      req.user.role === "admin" ? {} : { user_id: req.user.id };
-    const unreadCount = await Notification.count({
-      where: {
-        ...countWhere,
-        [Op.or]: [{ lu: false }, { lu: 0 }, { lu: null }],
-      },
-    });
-
-    res.json({ success: true, message: "Notification supprimée", unreadCount });
+// DELETE /api/notifications/clear-all
+exports.clearAllNotifications = async (req, res) => {
+  try {
+    await Notification.destroy({ where: { user_id: req.user.id } });
+    res.json({ success: true, message: "Toutes les notifications ont été supprimées" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

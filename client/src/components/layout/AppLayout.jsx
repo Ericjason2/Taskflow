@@ -17,9 +17,14 @@ export default function AppLayout() {
 
   useEffect(() => {
     if (user?.id) {
-      const socket = connectSocket();
+      const socket = connectSocket(user.id);
       joinUser(user.id);
       fetchNotifications();
+
+      // Silent background poll every 25 seconds for maximum reliability across devices
+      const pollTimer = setInterval(() => {
+        fetchNotifications();
+      }, 25000);
 
       const seenNotifs = new Set();
       const handleNotif = (notif) => {
@@ -38,6 +43,7 @@ export default function AppLayout() {
       socket.on(`notif_user_${user.id}`, handleNotif);
 
       return () => {
+        clearInterval(pollTimer);
         socket.off("new_notification", handleNotif);
         socket.off(`notif_user_${user.id}`, handleNotif);
       };

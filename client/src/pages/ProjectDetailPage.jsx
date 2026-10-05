@@ -259,7 +259,7 @@ export default function ProjectDetailPage() {
   };
   const progress =
     stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
-  const isCreator = currentProject.createur_id === user?.id;
+  const isCreator = currentProject.createur_id === user?.id || user?.role === "admin";
   const isMember = currentProject.membres?.some((m) => m.id === user?.id);
   const canManageTasks = isCreator || isMember || user?.role === "admin";
   const memberIds = currentProject.membres?.map((m) => m.id) || [];

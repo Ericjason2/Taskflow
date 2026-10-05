@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { authAPI } from '../services/api';
-import { connectSocket, disconnectSocket } from '../services/socket';
+import { connectSocket, disconnectSocket, joinUser } from '../services/socket';
+import useNotificationStore from './notificationStore';
 
 const useAuthStore = create((set, get) => ({
   user: JSON.parse(localStorage.getItem('tf_user') || 'null'),
@@ -15,7 +16,9 @@ const useAuthStore = create((set, get) => ({
       localStorage.setItem('tf_token', data.token);
       localStorage.setItem('tf_user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false });
-      connectSocket();
+      connectSocket(data.user.id);
+      joinUser(data.user.id);
+      useNotificationStore.getState().fetchNotifications();
       return { success: true };
     } catch (err) {
       set({ isLoading: false });
@@ -30,7 +33,9 @@ const useAuthStore = create((set, get) => ({
       localStorage.setItem('tf_token', data.token);
       localStorage.setItem('tf_user', JSON.stringify(data.user));
       set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false });
-      connectSocket();
+      connectSocket(data.user.id);
+      joinUser(data.user.id);
+      useNotificationStore.getState().fetchNotifications();
       return { success: true };
     } catch (err) {
       set({ isLoading: false });
@@ -42,6 +47,7 @@ const useAuthStore = create((set, get) => ({
     localStorage.removeItem('tf_token');
     localStorage.removeItem('tf_user');
     disconnectSocket();
+    useNotificationStore.setState({ notifications: [], unreadCount: 0, isOpen: false });
     set({ user: null, token: null, isAuthenticated: false });
   },
 

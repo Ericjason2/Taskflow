@@ -33,6 +33,8 @@ exports.sendNotification = async ({
     });
     if (io) {
       io.to(`user_${userId}`).emit("new_notification", full);
+      io.to(`user_${userId}`).emit(`notif_user_${userId}`, full);
+      io.emit(`notif_user_${userId}`, full);
     }
     return full;
   } catch (err) {
@@ -44,6 +46,10 @@ exports.sendNotification = async ({
 // GET /api/notifications
 exports.getNotifications = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+
     const notifications = await Notification.findAll({
       where: { user_id: req.user.id },
       include: [
@@ -58,7 +64,7 @@ exports.getNotifications = async (req, res) => {
     const unreadCount = await Notification.count({
       where: {
         user_id: req.user.id,
-        [Op.or]: [{ lu: false }, { lu: 0 }, { lu: null }],
+        [Op.or]: [{ lu: false }, { lu: null }],
       },
     });
 
@@ -75,6 +81,7 @@ exports.getNotifications = async (req, res) => {
 // PUT /api/notifications/:id/read
 exports.markAsRead = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     const notifId = parseInt(req.params.id, 10);
     if (isNaN(notifId)) {
       return res.status(400).json({ success: false, message: "ID invalide" });
@@ -97,6 +104,7 @@ exports.markAsRead = async (req, res) => {
 // PUT /api/notifications/read-all
 exports.markAllAsRead = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     await Notification.update(
       { lu: true },
       { where: { user_id: req.user.id } }
@@ -110,6 +118,7 @@ exports.markAllAsRead = async (req, res) => {
 // DELETE /api/notifications/:id
 exports.deleteNotification = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     const notifId = parseInt(req.params.id, 10);
     if (isNaN(notifId)) {
       return res.status(400).json({ success: false, message: "ID invalide" });
@@ -132,6 +141,7 @@ exports.deleteNotification = async (req, res) => {
 // DELETE /api/notifications/clear-all
 exports.clearAllNotifications = async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     await Notification.destroy({ where: { user_id: req.user.id } });
     res.json({ success: true, message: "Toutes les notifications ont été supprimées" });
   } catch (err) {

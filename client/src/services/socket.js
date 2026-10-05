@@ -26,7 +26,14 @@ let currentUserId = null;
 
 export const getSocket = () => {
   if (!socket) {
-    socket = io(getSocketURL(), { autoConnect: false });
+    socket = io(getSocketURL(), {
+      autoConnect: false,
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      transports: ["websocket", "polling"],
+    });
 
     socket.on('connect', () => {
       if (currentUserId) {
@@ -41,13 +48,14 @@ export const connectSocket = (userId = null) => {
   if (userId) currentUserId = userId;
   const s = getSocket();
   if (!s.connected) s.connect();
-  if (userId && s.connected) {
-    s.emit('join_user', userId);
+  if (currentUserId && s.connected) {
+    s.emit('join_user', currentUserId);
   }
   return s;
 };
 
 export const disconnectSocket = () => {
+  currentUserId = null;
   if (socket?.connected) socket.disconnect();
 };
 
@@ -60,9 +68,12 @@ export const leaveProject = (projectId) => {
 };
 
 export const joinUser = (userId) => {
+  if (!userId) return;
   currentUserId = userId;
   const s = getSocket();
-  if (s.connected) {
+  if (!s.connected) {
+    s.connect();
+  } else {
     s.emit('join_user', userId);
   }
 };

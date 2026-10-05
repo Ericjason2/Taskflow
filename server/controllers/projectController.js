@@ -318,10 +318,10 @@ exports.addMember = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Projet introuvable" });
-    if (project.createur_id !== req.user.id) {
+    if (project.createur_id !== req.user.id && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
-        message: "Seul le créateur peut ajouter des membres",
+        message: "Seul le créateur ou un administrateur peut ajouter des membres",
       });
     }
 
@@ -367,10 +367,10 @@ exports.removeMember = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Projet introuvable" });
-    if (project.createur_id !== req.user.id) {
+    if (project.createur_id !== req.user.id && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
-        message: "Seul le créateur peut retirer des membres",
+        message: "Seul le créateur ou un administrateur peut retirer des membres",
       });
     }
 

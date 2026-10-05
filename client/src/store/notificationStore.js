@@ -35,13 +35,17 @@ const useNotificationStore = create((set, get) => ({
             : computedUnread,
         isLoading: false,
       });
-    } catch (_) {
+    } catch (err) {
+      console.warn("fetchNotifications failed:", err?.message || err);
       set({ isLoading: false });
     }
   },
 
   markAsRead: async (id) => {
     const targetId = Number(id);
+    const prevNotifs = get().notifications;
+    const prevUnread = get().unreadCount;
+
     // Optimistic instant UI update
     set((s) => {
       const notif = s.notifications.find((n) => Number(n.id) === targetId);
@@ -55,10 +59,16 @@ const useNotificationStore = create((set, get) => ({
     });
     try {
       await notificationAPI.markAsRead(targetId);
-    } catch (_) {}
+    } catch (err) {
+      set({ notifications: prevNotifs, unreadCount: prevUnread });
+      throw err;
+    }
   },
 
   markAllAsRead: async () => {
+    const prevNotifs = get().notifications;
+    const prevUnread = get().unreadCount;
+
     // Optimistic instant UI update
     set((s) => ({
       notifications: s.notifications.map((n) => ({ ...n, lu: true })),
@@ -66,11 +76,17 @@ const useNotificationStore = create((set, get) => ({
     }));
     try {
       await notificationAPI.markAllAsRead();
-    } catch (_) {}
+    } catch (err) {
+      set({ notifications: prevNotifs, unreadCount: prevUnread });
+      throw err;
+    }
   },
 
   deleteNotification: async (id) => {
     const targetId = Number(id);
+    const prevNotifs = get().notifications;
+    const prevUnread = get().unreadCount;
+
     set((s) => {
       const notif = s.notifications.find((n) => Number(n.id) === targetId);
       const wasUnread = isNotificationUnread(notif);
@@ -81,14 +97,23 @@ const useNotificationStore = create((set, get) => ({
     });
     try {
       await notificationAPI.delete(targetId);
-    } catch (_) {}
+    } catch (err) {
+      set({ notifications: prevNotifs, unreadCount: prevUnread });
+      throw err;
+    }
   },
 
   clearAllNotifications: async () => {
+    const prevNotifs = get().notifications;
+    const prevUnread = get().unreadCount;
+
     set({ notifications: [], unreadCount: 0 });
     try {
       await notificationAPI.clearAll();
-    } catch (_) {}
+    } catch (err) {
+      set({ notifications: prevNotifs, unreadCount: prevUnread });
+      throw err;
+    }
   },
 
   addIncomingNotification: (notification) => {

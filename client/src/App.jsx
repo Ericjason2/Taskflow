@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import useAuthStore from './store/authStore';
 import AppLayout from './components/layout/AppLayout';
 import { Skeleton } from './components/common/Skeleton';
@@ -39,25 +40,28 @@ const PublicRoute = ({ children }) => {
 
 export default function App() {
   return (
-    <Suspense fallback={<PageFallback />}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-        <Route
-          element={
-            <PrivateRoute>
-              <AppLayout />
-            </PrivateRoute>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/projects" element={<ProjectsPage />} />
-          <Route path="/projects/:id" element={<ProjectDetailPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-        </Route>
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
+    <>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+          <Route
+            element={
+              <PrivateRoute>
+                <AppLayout />
+              </PrivateRoute>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+      <Analytics />
+    </>
   );
 }

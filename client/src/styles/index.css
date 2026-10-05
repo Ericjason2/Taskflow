@@ -1,3 +1,10 @@
+@import "tailwindcss";
+@layer base {
+  button, input, optgroup, select, textarea {
+    font-family: inherit;
+  }
+}
+
 :root {
   /* Modern shadcn/ui Design Tokens */
   --bg-base: #f8fafc;

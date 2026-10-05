@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hello-pangea/dnd": "^16.5.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@vercel/analytics": "^2.0.1",
     "axios": "^1.6.7",
     "clsx": "^2.1.0",
@@ -21,6 +22,7 @@
     "react-router-dom": "^6.22.0",
     "recharts": "^2.12.0",
     "socket.io-client": "^4.6.1",
+    "tailwindcss": "^4.3.3",
     "zustand": "^4.5.0"
   },
   "devDependencies": {

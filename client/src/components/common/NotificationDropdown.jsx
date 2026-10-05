@@ -19,9 +19,6 @@ export default function NotificationDropdown() {
   const {
     notifications,
     unreadCount,
-    isOpen,
-    toggleOpen,
-    setIsOpen,
     fetchNotifications,
     markAsRead,
     markAllAsRead,
@@ -29,6 +26,7 @@ export default function NotificationDropdown() {
     clearAllNotifications,
   } = useNotificationStore();
 
+  const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
@@ -43,7 +41,6 @@ export default function NotificationDropdown() {
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (!document.contains(e.target)) return;
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
       }
@@ -117,7 +114,7 @@ export default function NotificationDropdown() {
     if (!isOpen) {
       fetchNotifications();
     }
-    toggleOpen();
+    setIsOpen((prev) => !prev);
   };
 
   const displayedNotifications =
@@ -128,6 +125,7 @@ export default function NotificationDropdown() {
   return (
     <div className="notif-dropdown-wrapper" ref={dropdownRef}>
       <button
+        type="button"
         className="notif-trigger-btn"
         onClick={handleTriggerClick}
         title="Notifications"
@@ -142,7 +140,11 @@ export default function NotificationDropdown() {
       </button>
 
       {isOpen && (
-        <div className="notif-popover">
+        <div
+          className="notif-popover"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <div className="notif-header">
             <div className="notif-title-row">
@@ -258,10 +260,16 @@ export default function NotificationDropdown() {
                     </div>
 
                     {/* Dedicated actions buttons area */}
-                    <div className="notif-item-actions">
+                    <div
+                      className="notif-item-actions"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {unread ? (
                         <button
+                          type="button"
                           className="notif-btn-icon mark-read"
+                          onMouseDown={(e) => e.stopPropagation()}
                           onClick={(e) => handleMarkAsRead(e, notif.id)}
                           title="Marquer comme lue"
                           aria-label="Marquer comme lue"
@@ -270,7 +278,9 @@ export default function NotificationDropdown() {
                         </button>
                       ) : null}
                       <button
+                        type="button"
                         className="notif-btn-icon delete-btn"
+                        onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => handleDelete(e, notif.id)}
                         title="Supprimer la notification"
                         aria-label="Supprimer la notification"

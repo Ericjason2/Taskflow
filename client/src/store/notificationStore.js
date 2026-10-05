@@ -16,10 +16,6 @@ const useNotificationStore = create((set, get) => ({
   notifications: [],
   unreadCount: 0,
   isLoading: false,
-  isOpen: false,
-
-  setIsOpen: (isOpen) => set({ isOpen }),
-  toggleOpen: () => set((s) => ({ isOpen: !s.isOpen })),
 
   fetchNotifications: async () => {
     set({ isLoading: true });

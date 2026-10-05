@@ -47,7 +47,7 @@ const useAuthStore = create((set, get) => ({
     localStorage.removeItem('tf_token');
     localStorage.removeItem('tf_user');
     disconnectSocket();
-    useNotificationStore.setState({ notifications: [], unreadCount: 0, isOpen: false });
+    useNotificationStore.setState({ notifications: [], unreadCount: 0 });
     set({ user: null, token: null, isAuthenticated: false });
   },
 

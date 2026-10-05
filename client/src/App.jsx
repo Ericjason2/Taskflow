@@ -11,10 +11,11 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
 const ProjectDetailPage = lazy(() => import('./pages/ProjectDetailPage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
-const PageFallback = () => (
+export const PageFallback = () => (
   <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <Skeleton width="200px" height="28px" borderRadius="6px" />
@@ -42,26 +43,50 @@ const PublicRoute = ({ children }) => {
 export default function App() {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<PageFallback />}>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-          <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-          <Route
-            element={
-              <PrivateRoute>
-                <AppLayout />
-              </PrivateRoute>
-            }
-          >
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Route>
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Suspense fallback={<PageFallback />}>
+                <LoginPage />
+              </Suspense>
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Suspense fallback={<PageFallback />}>
+                <RegisterPage />
+              </Suspense>
+            </PublicRoute>
+          }
+        />
+        <Route
+          element={
+            <PrivateRoute>
+              <AppLayout />
+            </PrivateRoute>
+          }
+        >
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<PageFallback />}>
+              <NotFoundPage />
+            </Suspense>
+          }
+        />
+      </Routes>
       <Analytics />
     </ErrorBoundary>
   );

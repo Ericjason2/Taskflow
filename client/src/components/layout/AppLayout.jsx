@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileHeader from "./MobileHeader";
@@ -68,7 +68,24 @@ export default function AppLayout() {
       <div className="app-main-wrapper">
         <AppTopBar onOpenSearch={() => setCmdOpen(true)} />
         <main className="main-content">
-          <Outlet />
+          <Suspense
+            fallback={
+              <div style={{ padding: "28px 36px", display: "flex", flexDirection: "column", gap: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ width: 220, height: 28, background: "var(--bg-subtle)", borderRadius: 6 }} />
+                  <div style={{ width: 120, height: 36, background: "var(--bg-subtle)", borderRadius: 8 }} />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} style={{ width: "100%", height: 90, background: "var(--bg-subtle)", borderRadius: 10 }} />
+                  ))}
+                </div>
+                <div style={{ width: "100%", height: 320, background: "var(--bg-subtle)", borderRadius: 12 }} />
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
       <MobileHeader />

@@ -11,22 +11,26 @@ import {
   Briefcase,
   Star,
   Check,
+  Bell,
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
+import useNotificationStore from "../../store/notificationStore";
 import UserAvatar from "../common/UserAvatar";
 import toast from "react-hot-toast";
-
-const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble" },
-  { to: "/projects", icon: Kanban, label: "Tableaux (Projets)" },
-  { to: "/profile", icon: User, label: "Mon Profil" },
-];
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
   const { projects } = useProjectStore();
+  const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
+
+  const navItems = [
+    { to: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble" },
+    { to: "/projects", icon: Kanban, label: "Tableaux (Projets)" },
+    { to: "/notifications", icon: Bell, label: "Notifications", badge: unreadCount },
+    { to: "/profile", icon: User, label: "Mon Profil" },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -63,7 +67,7 @@ export default function Sidebar() {
       <div className="sidebar-content">
         <div className="nav-group">
           <p className="nav-group-title">Navigation</p>
-          {navItems.map(({ to, icon: Icon, label }) => (
+          {navItems.map(({ to, icon: Icon, label, badge }) => (
             <NavLink
               key={to}
               to={to}
@@ -73,6 +77,9 @@ export default function Sidebar() {
             >
               <Icon size={16} className="nav-icon" />
               <span>{label}</span>
+              {badge > 0 && (
+                <span className="sidebar-badge">{badge > 9 ? "9+" : badge}</span>
+              )}
               <ChevronRight size={13} className="nav-arrow" />
             </NavLink>
           ))}
@@ -281,6 +288,18 @@ export default function Sidebar() {
         .nav-link:hover .nav-arrow,
         .nav-link.active .nav-arrow {
           opacity: 0.6;
+        }
+
+        .sidebar-badge {
+          background: #ef4444;
+          color: #ffffff;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 1px 6px;
+          border-radius: 9999px;
+          margin-left: auto;
+          line-height: 1.4;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
         .recent-boards-list {

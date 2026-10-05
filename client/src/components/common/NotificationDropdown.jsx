@@ -43,6 +43,7 @@ export default function NotificationDropdown() {
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
+      if (!document.contains(e.target)) return;
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
       }
@@ -281,6 +282,21 @@ export default function NotificationDropdown() {
                 );
               })
             )}
+          </div>
+
+          {/* Footer link to full notification center */}
+          <div className="notif-popover-footer">
+            <button
+              type="button"
+              className="notif-footer-link"
+              onClick={() => {
+                setIsOpen(false);
+                navigate("/notifications");
+              }}
+            >
+              <span>Centre de notifications complet</span>
+              <ExternalLink size={12} />
+            </button>
           </div>
         </div>
       )}
@@ -615,6 +631,35 @@ export default function NotificationDropdown() {
           color: var(--text-muted);
           font-size: 13px;
           text-align: center;
+        }
+
+        .notif-popover-footer {
+          padding: 8px 12px;
+          border-top: 1px solid var(--border);
+          background: var(--bg-subtle);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .notif-footer-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11.5px;
+          font-weight: 600;
+          color: var(--accent);
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: opacity var(--transition);
+          padding: 4px 8px;
+          border-radius: var(--radius-xs);
+        }
+
+        .notif-footer-link:hover {
+          opacity: 0.85;
+          text-decoration: underline;
         }
       `}</style>
     </div>

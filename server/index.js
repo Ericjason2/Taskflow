@@ -80,7 +80,19 @@ app.use("/api/notifications", notificationRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) =>
-  res.json({ status: "OK", timestamp: new Date().toISOString() }),
+  res.json({
+    status: "OK",
+    version: "1.2.0",
+    features: [
+      "notifications",
+      "checklists",
+      "automations",
+      "calendar",
+      "command_palette",
+      "custom_fields",
+    ],
+    timestamp: new Date().toISOString(),
+  }),
 );
 
 // Error handling
@@ -121,26 +133,30 @@ async function initializeDB() {
     await sequelize.sync({ force: false });
     console.log("🗄️  Base de données synchronisée");
 
-    // Ensure new columns exist on tasks table (SQLite & Postgres compatible)
+    // Ensure new columns exist on tasks and projects tables (SQLite & Postgres compatible)
     try {
-      const [columns] = await sequelize.query("PRAGMA table_info(tasks);");
-      if (Array.isArray(columns) && columns.length > 0) {
-        const columnNames = columns.map((c) => c.name);
-        if (!columnNames.includes("checklists")) {
-          await sequelize.query("ALTER TABLE tasks ADD COLUMN checklists TEXT;");
-        }
-        if (!columnNames.includes("couverture")) {
-          await sequelize.query("ALTER TABLE tasks ADD COLUMN couverture VARCHAR(255);");
-        }
-        if (!columnNames.includes("pieces_jointes")) {
-          await sequelize.query("ALTER TABLE tasks ADD COLUMN pieces_jointes TEXT;");
-        }
+      const [taskCols] = await sequelize.query("PRAGMA table_info(tasks);");
+      if (Array.isArray(taskCols) && taskCols.length > 0) {
+        const names = taskCols.map((c) => c.name);
+        if (!names.includes("checklists")) await sequelize.query("ALTER TABLE tasks ADD COLUMN checklists TEXT;");
+        if (!names.includes("couverture")) await sequelize.query("ALTER TABLE tasks ADD COLUMN couverture VARCHAR(255);");
+        if (!names.includes("pieces_jointes")) await sequelize.query("ALTER TABLE tasks ADD COLUMN pieces_jointes TEXT;");
+        if (!names.includes("custom_fields")) await sequelize.query("ALTER TABLE tasks ADD COLUMN custom_fields TEXT;");
+      }
+      const [projCols] = await sequelize.query("PRAGMA table_info(projects);");
+      if (Array.isArray(projCols) && projCols.length > 0) {
+        const names = projCols.map((c) => c.name);
+        if (!names.includes("automations")) await sequelize.query("ALTER TABLE projects ADD COLUMN automations TEXT;");
+        if (!names.includes("custom_fields_config")) await sequelize.query("ALTER TABLE projects ADD COLUMN custom_fields_config TEXT;");
       }
     } catch (_) {
       try {
         await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS checklists TEXT;");
         await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS couverture VARCHAR(255);");
         await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS pieces_jointes TEXT;");
+        await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS custom_fields TEXT;");
+        await sequelize.query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS automations TEXT;");
+        await sequelize.query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS custom_fields_config TEXT;");
       } catch (_) {}
     }
 

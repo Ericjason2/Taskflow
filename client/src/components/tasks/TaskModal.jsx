@@ -19,6 +19,7 @@ export default function TaskModal({
   initialData,
   membres,
   members,
+  customFieldsConfig = [],
   isLoading,
 }) {
   const memberList = membres || members || [];
@@ -33,6 +34,7 @@ export default function TaskModal({
     checklists: [],
     couverture: "",
     pieces_jointes: [],
+    custom_fields: {},
   });
   const [errors, setErrors] = useState({});
   const [tagInput, setTagInput] = useState("");
@@ -53,6 +55,7 @@ export default function TaskModal({
         checklists: initialData.checklists || [],
         couverture: initialData.couverture || "",
         pieces_jointes: initialData.pieces_jointes || [],
+        custom_fields: initialData.custom_fields || {},
       });
     } else {
       setForm({
@@ -66,6 +69,7 @@ export default function TaskModal({
         checklists: [],
         couverture: "",
         pieces_jointes: [],
+        custom_fields: {},
       });
     }
     setErrors({});
@@ -551,6 +555,48 @@ export default function TaskModal({
                 />
               </div>
             </div>
+
+            {/* Custom Fields Section */}
+            {customFieldsConfig.length > 0 && (
+              <div className="form-group">
+                <label className="form-label">Champs personnalisés du tableau</label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 12,
+                    background: "var(--bg-subtle)",
+                    padding: 12,
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--border)",
+                  }}
+                >
+                  {customFieldsConfig.map((field) => (
+                    <div key={field.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>
+                        {field.label}
+                      </span>
+                      <input
+                        type={field.type === "number" ? "number" : field.type === "link" ? "url" : "text"}
+                        className="form-input"
+                        placeholder={field.label}
+                        value={form.custom_fields?.[field.id] || ""}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            custom_fields: {
+                              ...f.custom_fields,
+                              [field.id]: e.target.value,
+                            },
+                          }))
+                        }
+                        style={{ height: 34, fontSize: 13 }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="modal-footer" style={{ padding: "16px 24px" }}>

@@ -49,6 +49,17 @@ const Task = sequelize.define('Task', {
       this.setDataValue('pieces_jointes', JSON.stringify(val || []));
     },
   },
+  custom_fields: {
+    type: DataTypes.TEXT,
+    defaultValue: '{}',
+    get() {
+      const v = this.getDataValue('custom_fields');
+      try { return JSON.parse(v); } catch { return {}; }
+    },
+    set(val) {
+      this.setDataValue('custom_fields', JSON.stringify(val || {}));
+    },
+  },
 }, {
   tableName: 'tasks',
   timestamps: true,

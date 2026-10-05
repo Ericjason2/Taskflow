@@ -25,11 +25,16 @@ import {
   Download,
   FileSpreadsheet,
   FileJson,
+  Zap,
+  Sliders,
 } from "lucide-react";
 import useProjectStore from "../store/projectStore";
 import useAuthStore from "../store/authStore";
 import { authAPI, projectAPI } from "../services/api";
 import KanbanBoard from "../components/tasks/KanbanBoard";
+import CalendarView from "../components/tasks/CalendarView";
+import AutomationModal from "../components/projects/AutomationModal";
+import CustomFieldsModal from "../components/tasks/CustomFieldsModal";
 import TaskModal from "../components/tasks/TaskModal";
 import TaskDetailModal from "../components/tasks/TaskDetailModal";
 import ConfirmModal from "../components/common/ConfirmModal";
@@ -70,6 +75,9 @@ export default function ProjectDetailPage() {
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [memberModalOpen, setMemberModalOpen] = useState(false);
+  const [automationModalOpen, setAutomationModalOpen] = useState(false);
+  const [customFieldsModalOpen, setCustomFieldsModalOpen] = useState(false);
+  const [initialDateForNewTask, setInitialDateForNewTask] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
   const [onlyMyTasks, setOnlyMyTasks] = useState(false);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
@@ -314,6 +322,26 @@ export default function ProjectDetailPage() {
             )}
           </div>
 
+          {/* Automations Button */}
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setAutomationModalOpen(true)}
+            title="Gérer les règles et automatisations du tableau"
+          >
+            <Zap size={13} color="#f59e0b" />
+            <span>Règles</span>
+          </button>
+
+          {/* Custom Fields Button */}
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setCustomFieldsModalOpen(true)}
+            title="Configurer les champs personnalisés"
+          >
+            <Sliders size={13} />
+            <span>Champs</span>
+          </button>
+
           {/* Export Dropdown */}
           <div className="dropdown" style={{ position: "relative" }}>
             <button
@@ -383,6 +411,13 @@ export default function ProjectDetailPage() {
           >
             <List size={13} />
             <span>Liste</span>
+          </button>
+          <button
+            className={`tab ${view === "calendar" ? "active" : ""}`}
+            onClick={() => setView("calendar")}
+          >
+            <Calendar size={13} />
+            <span>Calendrier</span>
           </button>
           <button
             className={`tab ${view === "metrics" ? "active" : ""}`}
@@ -585,6 +620,19 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
+      {/* Calendar View */}
+      {view === "calendar" && (
+        <CalendarView
+          tasks={filteredTasks}
+          onTaskClick={(t) => setViewTask(t)}
+          onNewTaskWithDate={(dateStr) => {
+            setDefaultStatus("todo");
+            setInitialDateForNewTask(dateStr);
+            setTaskModalOpen(true);
+          }}
+        />
+      )}
+
       {/* Metrics View */}
       {view === "metrics" && (
         <div className="metrics-dashboard-grid">
@@ -636,10 +684,15 @@ export default function ProjectDetailPage() {
       {/* Modals */}
       <TaskModal
         open={taskModalOpen}
-        onClose={() => setTaskModalOpen(false)}
+        onClose={() => {
+          setTaskModalOpen(false);
+          setInitialDateForNewTask(null);
+        }}
         onSubmit={handleCreateTask}
         defaultStatus={defaultStatus}
+        initialData={initialDateForNewTask ? { echeance: initialDateForNewTask } : null}
         members={assignableMembers}
+        customFieldsConfig={currentProject.custom_fields_config}
         isLoading={saving}
       />
       <TaskModal
@@ -648,6 +701,7 @@ export default function ProjectDetailPage() {
         onSubmit={handleEditTask}
         initialData={editTask}
         members={assignableMembers}
+        customFieldsConfig={currentProject.custom_fields_config}
         isLoading={saving}
       />
       <TaskDetailModal
@@ -663,6 +717,7 @@ export default function ProjectDetailPage() {
           setDeleteTarget(t);
         }}
         projectId={id}
+        customFieldsConfig={currentProject.custom_fields_config}
         currentUserId={user?.id}
       />
       <ConfirmModal
@@ -672,6 +727,22 @@ export default function ProjectDetailPage() {
         title="Supprimer la tâche"
         message={`Supprimer "${deleteTarget?.titre}" définitivement ?`}
         danger
+      />
+
+      {/* Automations Modal */}
+      <AutomationModal
+        isOpen={automationModalOpen}
+        onClose={() => setAutomationModalOpen(false)}
+        project={currentProject}
+        onProjectUpdated={() => fetchProject(id)}
+      />
+
+      {/* Custom Fields Modal */}
+      <CustomFieldsModal
+        isOpen={customFieldsModalOpen}
+        onClose={() => setCustomFieldsModalOpen(false)}
+        project={currentProject}
+        onProjectUpdated={() => fetchProject(id)}
       />
 
       {/* Member Management Modal */}

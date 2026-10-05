@@ -11,6 +11,28 @@ const Project = sequelize.define('Project', {
   date_debut: { type: DataTypes.DATEONLY, defaultValue: DataTypes.NOW },
   date_fin: { type: DataTypes.DATEONLY, defaultValue: null },
   createur_id: { type: DataTypes.INTEGER, allowNull: false },
+  automations: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const v = this.getDataValue('automations');
+      try { return JSON.parse(v); } catch { return []; }
+    },
+    set(val) {
+      this.setDataValue('automations', JSON.stringify(val || []));
+    },
+  },
+  custom_fields_config: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const v = this.getDataValue('custom_fields_config');
+      try { return JSON.parse(v); } catch { return []; }
+    },
+    set(val) {
+      this.setDataValue('custom_fields_config', JSON.stringify(val || []));
+    },
+  },
 }, {
   tableName: 'projects',
   timestamps: true,

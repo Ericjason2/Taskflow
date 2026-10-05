@@ -160,6 +160,31 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
             </p>
           )}
 
+          {/* Custom Fields Badges */}
+          {task.custom_fields && Object.keys(task.custom_fields).length > 0 && (
+            <div style={{ display: "flex", gap: 5, flexWrap: "wrap", margin: "4px 0 6px" }}>
+              {Object.entries(task.custom_fields).map(([k, v]) => {
+                if (!v) return null;
+                return (
+                  <span
+                    key={k}
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      background: "var(--bg-subtle)",
+                      color: "var(--text-secondary)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 4,
+                      padding: "1px 5px",
+                    }}
+                  >
+                    {v}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
           {/* Card Bottom: Metadata, Due Date & Assignee */}
           <div className="card-bottom-bar">
             <div className="card-badges-left">

@@ -251,8 +251,9 @@ export default function Sidebar() {
           font-size: 13.5px;
           font-weight: 500;
           color: var(--text-secondary);
-          transition: all var(--transition);
+          transition: background-color 0.12s ease, color 0.12s ease;
           margin-bottom: 2px;
+          will-change: background-color;
         }
 
         .nav-link:hover {
@@ -296,7 +297,8 @@ export default function Sidebar() {
           border-radius: var(--radius-sm);
           font-size: 13px;
           color: var(--text-secondary);
-          transition: all var(--transition);
+          transition: background-color 0.12s ease, color 0.12s ease;
+          will-change: background-color;
         }
 
         .board-link:hover {

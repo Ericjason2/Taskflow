@@ -1,12 +1,12 @@
 import { useLocation, Link } from "react-router-dom";
-import { Kanban, ChevronRight, User as UserIcon } from "lucide-react";
+import { Kanban, ChevronRight, User as UserIcon, Search } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
 import NotificationDropdown from "../common/NotificationDropdown";
 import ThemeToggle from "../common/ThemeToggle";
 import UserAvatar from "../common/UserAvatar";
 
-export default function AppTopBar() {
+export default function AppTopBar({ onOpenSearch }) {
   const location = useLocation();
   const { user } = useAuthStore();
   const { currentProject } = useProjectStore();
@@ -52,6 +52,18 @@ export default function AppTopBar() {
       </div>
 
       <div className="topbar-right">
+        {/* Global Search Button */}
+        <button
+          type="button"
+          className="topbar-search-trigger"
+          onClick={onOpenSearch}
+          title="Recherche globale (Ctrl+K)"
+        >
+          <Search size={13} className="search-icon" />
+          <span className="search-text">Rechercher...</span>
+          <kbd className="search-kbd">Ctrl K</kbd>
+        </button>
+
         {/* Notifications & Theme Actions */}
         <div className="topbar-actions">
           <NotificationDropdown />
@@ -133,6 +145,56 @@ export default function AppTopBar() {
           border-radius: 100px;
           border: 1px solid var(--border);
           letter-spacing: 0.02em;
+        }
+
+        .topbar-search-trigger {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 5px 10px;
+          border-radius: var(--radius-sm);
+          background: var(--bg-subtle);
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          font-size: 12.5px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          font-family: inherit;
+        }
+
+        .topbar-search-trigger:hover {
+          border-color: var(--accent);
+          color: var(--text-primary);
+          background: var(--bg-surface);
+        }
+
+        .topbar-search-trigger .search-icon {
+          color: var(--text-muted);
+        }
+
+        .topbar-search-trigger .search-text {
+          font-size: 12px;
+        }
+
+        .topbar-search-trigger .search-kbd {
+          font-size: 10px;
+          font-weight: 600;
+          background: var(--bg-surface);
+          border: 1px solid var(--border);
+          border-radius: 3px;
+          padding: 1px 4px;
+          color: var(--text-muted);
+          margin-left: 4px;
+        }
+
+        @media (max-width: 640px) {
+          .topbar-search-trigger .search-text,
+          .topbar-search-trigger .search-kbd {
+            display: none;
+          }
+          .topbar-search-trigger {
+            padding: 6px;
+          }
         }
 
         .topbar-right {

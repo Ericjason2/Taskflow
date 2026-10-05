@@ -138,6 +138,7 @@ exports.createTask = async (req, res) => {
       checklists: Array.isArray(checklists) ? checklists : [],
       couverture: couverture || null,
       pieces_jointes: Array.isArray(pieces_jointes) ? pieces_jointes : [],
+      custom_fields: typeof req.body.custom_fields === "object" && req.body.custom_fields !== null ? req.body.custom_fields : {},
       projet_id,
       cree_par: req.user.id,
     });
@@ -267,7 +268,42 @@ exports.updateTask = async (req, res) => {
 
     const oldStatut = task.statut;
     const oldAssignee = task.assigne_a;
+    const oldPriorite = task.priorite;
     await task.update(req.body);
+
+    // Apply board automations
+    const automations = Array.isArray(project.automations) ? project.automations : [];
+    if (automations.length > 0) {
+      // 1. Auto-complete checklists when moved to 'done'
+      if (automations.includes("auto_done_checklists") && req.body.statut === "done" && Array.isArray(task.checklists) && task.checklists.length > 0) {
+        const completed = task.checklists.map((c) => ({ ...c, done: true }));
+        await task.update({ checklists: completed });
+      }
+
+      // 2. Alert creator when marked critical
+      if (automations.includes("auto_critical_alert") && req.body.priorite === "critique" && oldPriorite !== "critique" && req.user.id !== project.createur_id) {
+        await sendNotification({
+          userId: project.createur_id,
+          expediteurId: req.user.id,
+          projetId: project.id,
+          tacheId: task.id,
+          type: "critical_alert",
+          titre: "Alerte Priorité Critique",
+          message: `La tâche "${task.titre}" a été passée en priorité critique par ${req.user.nom}`,
+          io: req.io,
+        });
+      }
+
+      // 3. Auto-start on assignment
+      if (automations.includes("auto_assign_start") && req.body.assigne_a && task.statut === "todo") {
+        await task.update({ statut: "in_progress" });
+      }
+
+      // 4. Auto-move to review when checklist complete
+      if (automations.includes("auto_checklist_review") && Array.isArray(req.body.checklists) && req.body.checklists.length > 0 && req.body.checklists.every((c) => c.done) && task.statut === "in_progress") {
+        await task.update({ statut: "review" });
+      }
+    }
 
     // Notify newly assigned collaborator
     if (req.body.assigne_a && req.body.assigne_a !== oldAssignee && req.body.assigne_a !== req.user.id) {

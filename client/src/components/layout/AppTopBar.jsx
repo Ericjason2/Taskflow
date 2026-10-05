@@ -28,9 +28,6 @@ export default function AppTopBar({ onOpenSearch }) {
   } else if (path.startsWith("/profile")) {
     pageTitle = "Mon Profil";
     pageSubtitle = "Paramètres du compte";
-  } else if (path === "/notifications") {
-    pageTitle = "Notifications";
-    pageSubtitle = "Activité en temps réel";
   }
 
   const initials =

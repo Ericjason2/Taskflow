@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
-import { Menu, X, Kanban, LayoutDashboard, User, LogOut, Plus, ChevronRight, Bell } from 'lucide-react';
+import { Menu, X, Kanban, LayoutDashboard, User, LogOut, Plus, ChevronRight } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import useProjectStore from '../../store/projectStore';
-import useNotificationStore from '../../store/notificationStore';
 import NotificationDropdown from '../common/NotificationDropdown';
 import ThemeToggle from '../common/ThemeToggle';
 import UserAvatar from '../common/UserAvatar';
@@ -13,7 +12,6 @@ export default function MobileHeader() {
   const [open, setOpen] = useState(false);
   const { user, logout } = useAuthStore();
   const { projects } = useProjectStore();
-  const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -72,9 +70,8 @@ export default function MobileHeader() {
               {[
                 { to: '/dashboard', icon: LayoutDashboard, label: "Vue d'ensemble" },
                 { to: '/projects', icon: Kanban, label: 'Tableaux (Projets)' },
-                { to: '/notifications', icon: Bell, label: 'Notifications', badge: unreadCount },
                 { to: '/profile', icon: User, label: 'Mon Profil & Paramètres' },
-              ].map(({ to, icon: Icon, label, badge }) => (
+              ].map(({ to, icon: Icon, label }) => (
                 <NavLink
                   key={to}
                   to={to}

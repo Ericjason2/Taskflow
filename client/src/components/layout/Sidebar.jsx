@@ -11,24 +11,20 @@ import {
   Briefcase,
   Star,
   Check,
-  Bell,
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
-import useNotificationStore from "../../store/notificationStore";
 import UserAvatar from "../common/UserAvatar";
 import toast from "react-hot-toast";
 
 export default function Sidebar() {
   const { user, logout } = useAuthStore();
   const { projects } = useProjectStore();
-  const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
 
   const navItems = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble" },
     { to: "/projects", icon: Kanban, label: "Tableaux (Projets)" },
-    { to: "/notifications", icon: Bell, label: "Notifications", badge: unreadCount },
     { to: "/profile", icon: User, label: "Mon Profil" },
   ];
 

@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 import useAuthStore from './store/authStore';
 import AppLayout from './components/layout/AppLayout';
 import { Skeleton } from './components/common/Skeleton';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
@@ -40,7 +41,7 @@ const PublicRoute = ({ children }) => {
 
 export default function App() {
   return (
-    <>
+    <ErrorBoundary>
       <Suspense fallback={<PageFallback />}>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -62,6 +63,6 @@ export default function App() {
         </Routes>
       </Suspense>
       <Analytics />
-    </>
+    </ErrorBoundary>
   );
 }

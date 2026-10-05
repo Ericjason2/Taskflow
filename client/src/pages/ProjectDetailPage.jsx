@@ -281,7 +281,7 @@ export default function ProjectDetailPage() {
     : [];
 
   return (
-    <div className="board-page-container fade-in">
+    <div className={`board-page-container fade-in ${view !== "board" ? "scrollable-view" : ""}`}>
       {/* Trello Board Top Bar */}
       <div className="trello-board-header">
         <div className="board-header-left">
@@ -876,6 +876,20 @@ export default function ProjectDetailPage() {
           max-height: 100%;
           overflow: hidden;
           box-sizing: border-box;
+        }
+
+        .board-page-container.scrollable-view {
+          overflow-y: auto !important;
+          height: auto !important;
+          min-height: 100% !important;
+          max-height: none !important;
+          padding-bottom: 32px;
+        }
+
+        .board-page-container.scrollable-view .board-content-area {
+          overflow: visible !important;
+          height: auto !important;
+          min-height: auto !important;
         }
 
         .board-content-area {

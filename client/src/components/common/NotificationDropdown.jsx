@@ -5,7 +5,7 @@ import {
   Check,
   Trash2,
   Inbox,
-  Filter,
+  ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useNotificationStore from "../../store/notificationStore";
@@ -13,6 +13,7 @@ import useAuthStore from "../../store/authStore";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import UserAvatar from "./UserAvatar";
+import toast from "react-hot-toast";
 
 export default function NotificationDropdown() {
   const {
@@ -73,6 +74,44 @@ export default function NotificationDropdown() {
     }
   };
 
+  const handleMarkAsRead = async (e, id) => {
+    e.stopPropagation();
+    try {
+      await markAsRead(id);
+      toast.success("Notification marquée comme lue");
+    } catch {
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    try {
+      await deleteNotification(id);
+      toast.success("Notification supprimée");
+    } catch {
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
+  const handleMarkAll = async () => {
+    try {
+      await markAllAsRead();
+      toast.success("Toutes les notifications sont marquées comme lues");
+    } catch {
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await clearAllNotifications();
+      toast.success("Toutes les notifications ont été supprimées");
+    } catch {
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
   const handleTriggerClick = () => {
     if (!isOpen) {
       fetchNotifications();
@@ -118,7 +157,7 @@ export default function NotificationDropdown() {
               {unreadCount > 0 && (
                 <button
                   className="notif-action-btn"
-                  onClick={markAllAsRead}
+                  onClick={handleMarkAll}
                   title="Tout marquer comme lu"
                 >
                   <CheckCheck size={14} />
@@ -128,7 +167,7 @@ export default function NotificationDropdown() {
               {notifications.length > 0 && (
                 <button
                   className="notif-action-btn delete-all"
-                  onClick={clearAllNotifications}
+                  onClick={handleClearAll}
                   title="Effacer toutes les notifications"
                 >
                   <Trash2 size={13} />
@@ -160,7 +199,7 @@ export default function NotificationDropdown() {
           <div className="notif-list">
             {displayedNotifications.length === 0 ? (
               <div className="notif-empty">
-                <Inbox size={30} strokeWidth={1.5} color="var(--text-muted)" />
+                <Inbox size={32} strokeWidth={1.5} color="var(--text-muted)" />
                 <p>
                   {filter === "unread"
                     ? "Aucune notification non lue"
@@ -174,7 +213,6 @@ export default function NotificationDropdown() {
                   <div
                     key={notif.id}
                     className={`notif-item ${unread ? "unread" : "read"}`}
-                    onClick={() => handleNotificationClick(notif)}
                   >
                     <UserAvatar
                       user={notif.expediteur}
@@ -182,7 +220,12 @@ export default function NotificationDropdown() {
                       className="notif-avatar"
                     />
 
-                    <div className="notif-content">
+                    {/* Content area: clicking navigates to the project */}
+                    <div
+                      className="notif-content"
+                      onClick={() => handleNotificationClick(notif)}
+                      title={notif.projet_id ? "Cliquer pour ouvrir le tableau" : undefined}
+                    >
                       <div className="notif-content-head">
                         <p className="notif-item-title">{notif.titre}</p>
                         <span className="notif-time">
@@ -205,33 +248,33 @@ export default function NotificationDropdown() {
                             <CheckCheck size={12} /> Déjà lue
                           </span>
                         )}
+                        {notif.projet_id && (
+                          <span className="notif-open-link">
+                            <ExternalLink size={10} /> Ouvrir
+                          </span>
+                        )}
                       </div>
                     </div>
 
+                    {/* Dedicated actions buttons area */}
                     <div className="notif-item-actions">
-                      {unread && (
+                      {unread ? (
                         <button
                           className="notif-btn-icon mark-read"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            markAsRead(notif.id);
-                          }}
+                          onClick={(e) => handleMarkAsRead(e, notif.id)}
                           title="Marquer comme lue"
                           aria-label="Marquer comme lue"
                         >
-                          <Check size={13} strokeWidth={2.5} />
+                          <Check size={14} strokeWidth={2.5} />
                         </button>
-                      )}
+                      ) : null}
                       <button
                         className="notif-btn-icon delete-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteNotification(notif.id);
-                        }}
+                        onClick={(e) => handleDelete(e, notif.id)}
                         title="Supprimer la notification"
                         aria-label="Supprimer la notification"
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={13} />
                       </button>
                     </div>
                   </div>
@@ -250,8 +293,8 @@ export default function NotificationDropdown() {
 
         .notif-trigger-btn {
           position: relative;
-          width: 34px;
-          height: 34px;
+          width: 36px;
+          height: 36px;
           border-radius: var(--radius-md);
           border: 1px solid var(--border);
           background: var(--bg-surface);
@@ -277,8 +320,8 @@ export default function NotificationDropdown() {
           color: #ffffff;
           font-size: 10px;
           font-weight: 700;
-          height: 17px;
-          min-width: 17px;
+          height: 18px;
+          min-width: 18px;
           padding: 0 4px;
           border-radius: 9999px;
           display: flex;
@@ -292,7 +335,7 @@ export default function NotificationDropdown() {
           position: absolute;
           top: calc(100% + 8px);
           right: 0;
-          width: 350px;
+          width: 360px;
           max-width: 92vw;
           background: var(--bg-surface);
           border: 1px solid var(--border);
@@ -307,7 +350,7 @@ export default function NotificationDropdown() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 10px 14px;
+          padding: 12px 16px;
           border-bottom: 1px solid var(--border);
           background: var(--bg-subtle);
         }
@@ -315,12 +358,12 @@ export default function NotificationDropdown() {
         .notif-title-row {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 7px;
         }
 
         .notif-title {
-          font-size: 13.5px;
-          font-weight: 600;
+          font-size: 14px;
+          font-weight: 700;
           color: var(--text-primary);
         }
 
@@ -328,34 +371,34 @@ export default function NotificationDropdown() {
           font-size: 10.5px;
           background: var(--accent-subtle);
           color: var(--accent);
-          padding: 1px 6px;
+          padding: 1px 7px;
           border-radius: 9999px;
-          font-weight: 600;
+          font-weight: 700;
         }
 
         .notif-header-actions {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .notif-action-btn {
           display: inline-flex;
           align-items: center;
           gap: 4px;
-          font-size: 11.5px;
-          font-weight: 500;
+          font-size: 12px;
+          font-weight: 600;
           color: var(--accent);
           background: none;
           border: none;
           cursor: pointer;
-          padding: 2px 4px;
+          padding: 4px 6px;
           border-radius: var(--radius-xs);
           transition: opacity var(--transition);
         }
 
         .notif-action-btn:hover {
-          opacity: 0.8;
+          opacity: 0.85;
           text-decoration: underline;
         }
 
@@ -371,14 +414,14 @@ export default function NotificationDropdown() {
           display: flex;
           background: var(--bg-subtle);
           border-bottom: 1px solid var(--border);
-          padding: 4px 10px;
-          gap: 6px;
+          padding: 6px 12px;
+          gap: 8px;
         }
 
         .notif-tab {
-          font-size: 11.5px;
+          font-size: 12px;
           font-weight: 500;
-          padding: 3px 8px;
+          padding: 4px 10px;
           border-radius: var(--radius-sm);
           border: none;
           background: transparent;
@@ -394,12 +437,12 @@ export default function NotificationDropdown() {
         .notif-tab.active {
           background: var(--bg-surface);
           color: var(--text-primary);
-          font-weight: 600;
+          font-weight: 700;
           box-shadow: var(--shadow-xs);
         }
 
         .notif-list {
-          max-height: 380px;
+          max-height: 420px;
           overflow-y: auto;
           display: flex;
           flex-direction: column;
@@ -408,10 +451,9 @@ export default function NotificationDropdown() {
         .notif-item {
           display: flex;
           align-items: flex-start;
-          gap: 10px;
-          padding: 11px 14px;
+          gap: 12px;
+          padding: 12px 16px;
           border-bottom: 1px solid var(--border);
-          cursor: pointer;
           transition: background var(--transition), opacity var(--transition);
           position: relative;
         }
@@ -432,7 +474,7 @@ export default function NotificationDropdown() {
         .notif-item.read {
           background: var(--bg-surface);
           border-left: 3px solid transparent;
-          opacity: 0.76;
+          opacity: 0.78;
         }
 
         .notif-item.read:hover {
@@ -440,8 +482,8 @@ export default function NotificationDropdown() {
         }
 
         .notif-avatar {
-          width: 28px;
-          height: 28px;
+          width: 30px;
+          height: 30px;
           border-radius: 50%;
           flex-shrink: 0;
           margin-top: 2px;
@@ -450,6 +492,7 @@ export default function NotificationDropdown() {
         .notif-content {
           flex: 1;
           min-width: 0;
+          cursor: pointer;
         }
 
         .notif-content-head {
@@ -457,12 +500,12 @@ export default function NotificationDropdown() {
           align-items: center;
           justify-content: space-between;
           gap: 6px;
-          margin-bottom: 2px;
+          margin-bottom: 3px;
         }
 
         .notif-item-title {
-          font-size: 12.5px;
-          font-weight: 600;
+          font-size: 13px;
+          font-weight: 700;
           color: var(--text-primary);
           white-space: nowrap;
           overflow: hidden;
@@ -478,15 +521,16 @@ export default function NotificationDropdown() {
         .notif-item-msg {
           font-size: 12px;
           color: var(--text-secondary);
-          line-height: 1.4;
-          margin-bottom: 5px;
+          line-height: 1.45;
+          margin-bottom: 6px;
           word-break: break-word;
         }
 
         .notif-status-line {
           display: flex;
           align-items: center;
-          font-size: 10.5px;
+          gap: 10px;
+          font-size: 11px;
         }
 
         .status-indicator-unread {
@@ -494,7 +538,7 @@ export default function NotificationDropdown() {
           align-items: center;
           gap: 4px;
           color: var(--accent);
-          font-weight: 600;
+          font-weight: 700;
         }
 
         .status-indicator-read {
@@ -505,21 +549,30 @@ export default function NotificationDropdown() {
           font-weight: 500;
         }
 
+        .notif-open-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          color: var(--accent);
+          font-size: 10.5px;
+          font-weight: 600;
+        }
+
         .notif-item-actions {
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
           flex-shrink: 0;
           margin-top: 2px;
         }
 
         .notif-btn-icon {
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           border-radius: var(--radius-sm);
           border: 1px solid var(--border);
           background: var(--bg-surface);
-          color: var(--text-muted);
+          color: var(--text-secondary);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -527,10 +580,15 @@ export default function NotificationDropdown() {
           transition: all 0.15s ease;
         }
 
+        .notif-btn-icon.mark-read {
+          color: var(--accent);
+          background: var(--accent-subtle);
+          border-color: var(--accent);
+        }
+
         .notif-btn-icon.mark-read:hover {
           background: var(--accent);
           color: #ffffff;
-          border-color: var(--accent);
         }
 
         .notif-btn-icon.delete-btn:hover {
@@ -552,10 +610,10 @@ export default function NotificationDropdown() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 32px 16px;
+          padding: 36px 16px;
           gap: 8px;
           color: var(--text-muted);
-          font-size: 12.5px;
+          font-size: 13px;
           text-align: center;
         }
       `}</style>

@@ -283,8 +283,8 @@ export default function CalendarView({
           display: flex;
           flex-direction: column;
           gap: 16px;
-          height: 100%;
-          min-height: 580px;
+          flex: 1;
+          min-height: 0;
         }
 
         .calendar-header-bar {
@@ -357,6 +357,7 @@ export default function CalendarView({
           flex-direction: column;
           overflow: hidden;
           box-shadow: var(--shadow-sm);
+          min-height: 660px;
         }
 
         .calendar-weekdays-row {
@@ -379,7 +380,7 @@ export default function CalendarView({
         .calendar-days-matrix {
           display: grid;
           grid-template-columns: repeat(7, 1fr);
-          grid-auto-rows: minmax(95px, 1fr);
+          grid-auto-rows: minmax(105px, 1fr);
           flex: 1;
         }
 
@@ -391,7 +392,7 @@ export default function CalendarView({
           flex-direction: column;
           background: var(--bg-surface);
           transition: background 0.15s ease;
-          min-height: 95px;
+          min-height: 105px;
         }
 
         .cal-day-cell:nth-child(7n) {

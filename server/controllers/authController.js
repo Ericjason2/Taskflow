@@ -20,18 +20,32 @@ exports.loginValidation = [
 
 exports.register = async (req, res) => {
   try {
-    const { nom, email, password, role } = req.body;
+    const { nom, email, password, role, adminSecret } = req.body;
     const existing = await User.findOne({ where: { email } });
     if (existing) {
       return res
         .status(409)
         .json({ success: false, message: "Cet email est déjà utilisé" });
     }
+
+    // Prevent privilege escalation: default to 'membre' unless initial bootstrap or valid admin secret
+    const userCount = await User.count();
+    let assignedRole = "membre";
+    if (role === "admin") {
+      if (
+        userCount === 0 ||
+        (process.env.ADMIN_REGISTRATION_SECRET &&
+          adminSecret === process.env.ADMIN_REGISTRATION_SECRET)
+      ) {
+        assignedRole = "admin";
+      }
+    }
+
     const user = await User.create({
-      nom,
-      email,
+      nom: nom.trim(),
+      email: email.trim().toLowerCase(),
       password,
-      role: role === "admin" ? "admin" : "membre",
+      role: assignedRole,
     });
     const token = generateToken(user.id);
     res

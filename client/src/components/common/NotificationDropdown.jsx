@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Bell, CheckCheck, Check, Trash2, ExternalLink, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import useNotificationStore from "../../store/notificationStore";
 import useAuthStore from "../../store/authStore";
 import { formatDistanceToNow } from "date-fns";
@@ -17,6 +18,7 @@ export default function NotificationDropdown() {
     fetchNotifications,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
   } = useNotificationStore();
 
   const { user } = useAuthStore();
@@ -49,18 +51,27 @@ export default function NotificationDropdown() {
       notif.lu === 0 ||
       notif.lu === "0" ||
       notif.lu === "false" ||
+      notif.lu === null ||
+      notif.lu === undefined ||
       !notif.lu
     );
   };
 
   const handleNotificationClick = async (notif) => {
     if (isNotificationUnread(notif)) {
-      markAsRead(notif.id);
+      await markAsRead(notif.id);
     }
     setIsOpen(false);
     if (notif.projet_id) {
       navigate(`/projects/${notif.projet_id}`);
     }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead();
+    toast.success("Toutes les notifications sont marquées comme lues", {
+      id: "mark-all-read",
+    });
   };
 
   const handleTriggerClick = () => {
@@ -98,7 +109,7 @@ export default function NotificationDropdown() {
             {unreadCount > 0 && (
               <button
                 className="notif-action-btn"
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 title="Tout marquer comme lu"
               >
                 <CheckCheck size={14} />
@@ -140,10 +151,14 @@ export default function NotificationDropdown() {
                     <div className="notif-item-actions">
                       {unread && (
                         <button
+                          type="button"
                           className="notif-item-read-btn"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            markAsRead(notif.id);
+                            await markAsRead(notif.id);
+                            toast.success("Notification marquée comme lue", {
+                              id: `read-${notif.id}`,
+                            });
                           }}
                           title="Marquer comme lue"
                           aria-label="Marquer comme lue"
@@ -151,6 +166,21 @@ export default function NotificationDropdown() {
                           <Check size={13} />
                         </button>
                       )}
+                      <button
+                        type="button"
+                        className="notif-item-del-btn"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          await deleteNotification(notif.id);
+                          toast.success("Notification supprimée", {
+                            id: `del-${notif.id}`,
+                          });
+                        }}
+                        title="Supprimer la notification"
+                        aria-label="Supprimer la notification"
+                      >
+                        <Trash2 size={12} />
+                      </button>
                       {unread && <span className="unread-dot" />}
                     </div>
                   </div>
@@ -369,6 +399,31 @@ export default function NotificationDropdown() {
           background: var(--accent);
           color: #ffffff;
           border-color: var(--accent);
+        }
+
+        .notif-item-del-btn {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          border: 1px solid var(--border);
+          background: var(--bg-surface);
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          opacity: 0.6;
+        }
+
+        .notif-item:hover .notif-item-del-btn {
+          opacity: 1;
+        }
+
+        .notif-item-del-btn:hover {
+          background: #ef4444;
+          color: #ffffff;
+          border-color: #ef4444;
         }
 
         .unread-dot {

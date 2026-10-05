@@ -54,8 +54,14 @@ const useNotificationStore = create((set, get) => ({
       };
     });
     try {
-      await notificationAPI.markAsRead(targetId);
-    } catch (_) {}
+      const res = await notificationAPI.markAsRead(targetId);
+      if (res?.data?.unreadCount !== undefined) {
+        set({ unreadCount: res.data.unreadCount });
+      }
+    } catch (err) {
+      console.error("Erreur markAsRead:", err);
+      get().fetchNotifications();
+    }
   },
 
   markAllAsRead: async () => {
@@ -65,8 +71,35 @@ const useNotificationStore = create((set, get) => ({
       unreadCount: 0,
     }));
     try {
-      await notificationAPI.markAllAsRead();
-    } catch (_) {}
+      const res = await notificationAPI.markAllAsRead();
+      if (res?.data?.unreadCount !== undefined) {
+        set({ unreadCount: res.data.unreadCount });
+      }
+    } catch (err) {
+      console.error("Erreur markAllAsRead:", err);
+      get().fetchNotifications();
+    }
+  },
+
+  deleteNotification: async (id) => {
+    const targetId = Number(id);
+    set((s) => {
+      const notif = s.notifications.find((n) => Number(n.id) === targetId);
+      const wasUnread = isNotificationUnread(notif);
+      return {
+        notifications: s.notifications.filter((n) => Number(n.id) !== targetId),
+        unreadCount: wasUnread ? Math.max(0, s.unreadCount - 1) : s.unreadCount,
+      };
+    });
+    try {
+      const res = await notificationAPI.delete(targetId);
+      if (res?.data?.unreadCount !== undefined) {
+        set({ unreadCount: res.data.unreadCount });
+      }
+    } catch (err) {
+      console.error("Erreur deleteNotification:", err);
+      get().fetchNotifications();
+    }
   },
 
   addIncomingNotification: (notification) => {

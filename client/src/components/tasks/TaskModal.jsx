@@ -23,6 +23,9 @@ export default function TaskModal({
   isLoading,
 }) {
   const memberList = membres || members || [];
+  const safeCustomFieldsConfig = Array.isArray(customFieldsConfig)
+    ? customFieldsConfig
+    : [];
   const [form, setForm] = useState({
     titre: "",
     description: "",
@@ -557,7 +560,7 @@ export default function TaskModal({
             </div>
 
             {/* Custom Fields Section */}
-            {customFieldsConfig.length > 0 && (
+            {safeCustomFieldsConfig.length > 0 && (
               <div className="form-group">
                 <label className="form-label">Champs personnalisés du tableau</label>
                 <div
@@ -571,7 +574,7 @@ export default function TaskModal({
                     border: "1px solid var(--border)",
                   }}
                 >
-                  {customFieldsConfig.map((field) => (
+                  {safeCustomFieldsConfig.map((field) => (
                     <div key={field.id} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)" }}>
                         {field.label}

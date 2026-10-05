@@ -617,67 +617,78 @@ export default function TaskDetailModal({
           </div>
 
           {/* Custom Fields Section */}
-          {customFieldsConfig.length > 0 && task.custom_fields && Object.keys(task.custom_fields).length > 0 && (
-            <div style={{ marginBottom: 16 }}>
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "var(--text-secondary)",
-                  display: "block",
-                  marginBottom: 8,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                Champs personnalisés
-              </span>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8 }}>
-                {customFieldsConfig.map((cf) => {
-                  const val = task.custom_fields[cf.id];
-                  if (!val) return null;
-                  return (
-                    <div
-                      key={cf.id}
-                      style={{
-                        padding: "8px 10px",
-                        background: "var(--bg-subtle)",
-                        borderRadius: "var(--radius-sm)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      <span style={{ fontSize: 11, color: "var(--text-muted)", display: "block" }}>
-                        {cf.label}
-                      </span>
-                      {cf.type === "link" ? (
-                        <a
-                          href={val.startsWith("http") ? val : `https://${val}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{
-                            fontSize: 12.5,
-                            fontWeight: 600,
-                            color: "var(--accent)",
-                            textDecoration: "none",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            display: "block",
-                          }}
-                        >
-                          {val}
-                        </a>
-                      ) : (
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-                          {val} {cf.type === "time" ? "h" : ""}
+          {(() => {
+            const safeConfig = Array.isArray(customFieldsConfig) ? customFieldsConfig : [];
+            let cf = task.custom_fields;
+            if (typeof cf === "string") {
+              try { cf = JSON.parse(cf); } catch { cf = null; }
+            }
+            if (safeConfig.length === 0 || !cf || typeof cf !== "object" || Array.isArray(cf) || Object.keys(cf).length === 0) return null;
+            const hasAny = safeConfig.some((c) => cf[c.id]);
+            if (!hasAny) return null;
+
+            return (
+              <div style={{ marginBottom: 16 }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "var(--text-secondary)",
+                    display: "block",
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  Champs personnalisés
+                </span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8 }}>
+                  {safeConfig.map((field) => {
+                    const val = cf[field.id];
+                    if (!val) return null;
+                    return (
+                      <div
+                        key={field.id}
+                        style={{
+                          padding: "8px 10px",
+                          background: "var(--bg-subtle)",
+                          borderRadius: "var(--radius-sm)",
+                          border: "1px solid var(--border)",
+                        }}
+                      >
+                        <span style={{ fontSize: 11, color: "var(--text-muted)", display: "block" }}>
+                          {field.label}
                         </span>
-                      )}
-                    </div>
-                  );
-                })}
+                        {field.type === "link" ? (
+                          <a
+                            href={val.startsWith("http") ? val : `https://${val}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              color: "var(--accent)",
+                              textDecoration: "none",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              display: "block",
+                            }}
+                          >
+                            {val}
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                            {val} {field.type === "time" ? "h" : ""}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Comments Section */}
           <div>

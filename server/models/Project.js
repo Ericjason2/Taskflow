@@ -16,7 +16,13 @@ const Project = sequelize.define('Project', {
     defaultValue: '[]',
     get() {
       const v = this.getDataValue('automations');
-      try { return JSON.parse(v); } catch { return []; }
+      if (!v) return [];
+      try {
+        const p = JSON.parse(v);
+        return Array.isArray(p) ? p : [];
+      } catch {
+        return [];
+      }
     },
     set(val) {
       this.setDataValue('automations', JSON.stringify(val || []));
@@ -27,7 +33,13 @@ const Project = sequelize.define('Project', {
     defaultValue: '[]',
     get() {
       const v = this.getDataValue('custom_fields_config');
-      try { return JSON.parse(v); } catch { return []; }
+      if (!v) return [];
+      try {
+        const p = JSON.parse(v);
+        return Array.isArray(p) ? p : [];
+      } catch {
+        return [];
+      }
     },
     set(val) {
       this.setDataValue('custom_fields_config', JSON.stringify(val || []));

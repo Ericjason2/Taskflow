@@ -161,29 +161,36 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
           )}
 
           {/* Custom Fields Badges */}
-          {task.custom_fields && Object.keys(task.custom_fields).length > 0 && (
-            <div style={{ display: "flex", gap: 5, flexWrap: "wrap", margin: "4px 0 6px" }}>
-              {Object.entries(task.custom_fields).map(([k, v]) => {
-                if (!v) return null;
-                return (
-                  <span
-                    key={k}
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 600,
-                      background: "var(--bg-subtle)",
-                      color: "var(--text-secondary)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 4,
-                      padding: "1px 5px",
-                    }}
-                  >
-                    {v}
-                  </span>
-                );
-              })}
-            </div>
-          )}
+          {(() => {
+            let cf = task.custom_fields;
+            if (typeof cf === "string") {
+              try { cf = JSON.parse(cf); } catch { cf = null; }
+            }
+            if (!cf || typeof cf !== "object" || Array.isArray(cf) || Object.keys(cf).length === 0) return null;
+            return (
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", margin: "4px 0 6px" }}>
+                {Object.entries(cf).map(([k, v]) => {
+                  if (!v) return null;
+                  return (
+                    <span
+                      key={k}
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 600,
+                        background: "var(--bg-subtle)",
+                        color: "var(--text-secondary)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 4,
+                        padding: "1px 5px",
+                      }}
+                    >
+                      {v}
+                    </span>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* Card Bottom: Metadata, Due Date & Assignee */}
           <div className="card-bottom-bar">

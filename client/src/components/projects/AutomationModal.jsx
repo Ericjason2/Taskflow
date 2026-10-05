@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   Zap,
@@ -47,16 +47,36 @@ const AVAILABLE_AUTOMATIONS = [
   },
 ];
 
+const parseAutomations = (raw) => {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    try {
+      const p = JSON.parse(raw);
+      return Array.isArray(p) ? p : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export default function AutomationModal({
   isOpen,
   onClose,
   project,
   onProjectUpdated,
 }) {
-  const [activeRules, setActiveRules] = useState(
-    Array.isArray(project?.automations) ? project.automations : [],
+  const [activeRules, setActiveRules] = useState(() =>
+    parseAutomations(project?.automations),
   );
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveRules(parseAutomations(project?.automations));
+    }
+  }, [isOpen, project?.automations]);
 
   if (!isOpen) return null;
 

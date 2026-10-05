@@ -259,10 +259,22 @@ export default function ProjectDetailPage() {
   const isMember = currentProject.membres?.some((m) => m.id === user?.id);
   const canManageTasks = isCreator || isMember || user?.role === "admin";
   const memberIds = currentProject.membres?.map((m) => m.id) || [];
-  // Collaborateurs ajoutés assignables (membres du projet sauf soi-même)
   const assignableMembers = (currentProject.membres || []).filter(
     (m) => m.id !== user?.id,
   );
+
+  const customFieldsConfig = Array.isArray(currentProject?.custom_fields_config)
+    ? currentProject.custom_fields_config
+    : typeof currentProject?.custom_fields_config === "string"
+    ? (() => {
+        try {
+          const parsed = JSON.parse(currentProject.custom_fields_config);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      })()
+    : [];
 
   return (
     <div className="board-page-container fade-in">
@@ -688,7 +700,7 @@ export default function ProjectDetailPage() {
         defaultStatus={defaultStatus}
         initialData={initialDateForNewTask ? { echeance: initialDateForNewTask } : null}
         members={assignableMembers}
-        customFieldsConfig={currentProject.custom_fields_config}
+        customFieldsConfig={customFieldsConfig}
         isLoading={saving}
       />
       <TaskModal
@@ -697,7 +709,7 @@ export default function ProjectDetailPage() {
         onSubmit={handleEditTask}
         initialData={editTask}
         members={assignableMembers}
-        customFieldsConfig={currentProject.custom_fields_config}
+        customFieldsConfig={customFieldsConfig}
         isLoading={saving}
       />
       <TaskDetailModal
@@ -713,7 +725,7 @@ export default function ProjectDetailPage() {
           setDeleteTarget(t);
         }}
         projectId={id}
-        customFieldsConfig={currentProject.custom_fields_config}
+        customFieldsConfig={customFieldsConfig}
         currentUserId={user?.id}
       />
       <ConfirmModal
@@ -726,20 +738,38 @@ export default function ProjectDetailPage() {
       />
 
       {/* Automations Modal */}
-      <AutomationModal
-        isOpen={automationModalOpen}
-        onClose={() => setAutomationModalOpen(false)}
-        project={currentProject}
-        onProjectUpdated={() => fetchProject(id)}
-      />
+      {automationModalOpen && (
+        <AutomationModal
+          isOpen={automationModalOpen}
+          onClose={() => setAutomationModalOpen(false)}
+          project={currentProject}
+          onProjectUpdated={(updated) => {
+            if (updated) {
+              useProjectStore.setState((s) => ({
+                currentProject: { ...s.currentProject, ...updated },
+              }));
+            }
+            fetchProject(id);
+          }}
+        />
+      )}
 
       {/* Custom Fields Modal */}
-      <CustomFieldsModal
-        isOpen={customFieldsModalOpen}
-        onClose={() => setCustomFieldsModalOpen(false)}
-        project={currentProject}
-        onProjectUpdated={() => fetchProject(id)}
-      />
+      {customFieldsModalOpen && (
+        <CustomFieldsModal
+          isOpen={customFieldsModalOpen}
+          onClose={() => setCustomFieldsModalOpen(false)}
+          project={currentProject}
+          onProjectUpdated={(updated) => {
+            if (updated) {
+              useProjectStore.setState((s) => ({
+                currentProject: { ...s.currentProject, ...updated },
+              }));
+            }
+            fetchProject(id);
+          }}
+        />
+      )}
 
       {/* Member Management Modal */}
       {memberModalOpen && (

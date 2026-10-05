@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   Sliders,
@@ -20,20 +20,38 @@ const PRESET_TYPES = [
   { id: "text", label: "Texte / Environnement", icon: Tag },
 ];
 
+const parseFields = (raw) => {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    try {
+      const p = JSON.parse(raw);
+      return Array.isArray(p) ? p : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export default function CustomFieldsModal({
   isOpen,
   onClose,
   project,
   onProjectUpdated,
 }) {
-  const [fields, setFields] = useState(
-    Array.isArray(project?.custom_fields_config)
-      ? project.custom_fields_config
-      : [],
+  const [fields, setFields] = useState(() =>
+    parseFields(project?.custom_fields_config),
   );
   const [newFieldName, setNewFieldName] = useState("");
   const [newFieldType, setNewFieldType] = useState("number");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFields(parseFields(project?.custom_fields_config));
+    }
+  }, [isOpen, project?.custom_fields_config]);
 
   if (!isOpen) return null;
 

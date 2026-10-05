@@ -1,6 +1,6 @@
-# TaskFlow — Plateforme de Gestion de Projets Collaboratifs (MVP Complet)
+# TaskFlow — Plateforme de Gestion de Projets Collaboratifs
 
-Une plateforme web moderne, fluide et collaborative pour gérer des projets en équipe avec une expérience inspirée de Trello, des vues multiples, une synchronisation temps réel et des règles de sécurité rigoureuses.
+Une plateforme web moderne, fluide et collaborative pour gérer des projets d'équipe avec une expérience inspirée de Trello, des vues multiples (Kanban, Liste, Calendrier, Métriques), une synchronisation temps réel par WebSockets, des automatisations de règles et une conception responsive mobile-first propulsée par **Tailwind CSS v4**.
 
 **[Démo Live (Frontend Vercel)](https://taskflow-ivory-nine.vercel.app)** • **[API Backend (Railway)](https://taskflow-production-fd38.up.railway.app)** • **[Documentation API](./docs/API.md)**
 
@@ -17,7 +17,7 @@ Une plateforme web moderne, fluide et collaborative pour gérer des projets en �
 
 ## Comptes de Démonstration
 
-Des boutons de **connexion en un clic** sont directement disponibles sur la page de connexion pour tester immédiatement avec différents profils et rôles :
+Des boutons de **connexion en un clic** sont directement intégrés sur la page de connexion pour tester immédiatement avec différents profils et rôles :
 
 | Utilisateur | Email | Mot de passe | Rôle & Permissions |
 | :--- | :--- | :--- | :--- |
@@ -30,79 +30,82 @@ Des boutons de **connexion en un clic** sont directement disponibles sur la page
 
 ---
 
-## Fonctionnalités Clés du MVP
+## Fonctionnalités Clés
 
-### 1. Checklists & Sous-tâches Interactives
-- **Création & Gestion** : Ajout de sous-tâches au sein de chaque carte avec titre et statut (*fait / à faire*).
+### 1. Vues Multiples & Tableau Kanban Interactif
+- **Tableau Kanban** : Glisser-déposer (*Drag & Drop*) ultra-fluide avec `@hello-pangea/dnd` entre colonnes (*À faire*, *En cours*, *En révision*, *Terminé*).
+- **Vue Liste (Tabulaire)** : Vue tabulaire structurée avec tri rapide, modification en ligne du statut, de la priorité et des assignés.
+- **Vue Calendrier** : Vue calendaire mensuelle complète permettant de visualiser la répartition des tâches selon leurs dates d'échéance.
+- **Vue Métriques & Dashboard** : Indicateurs de performance visuels avec taux de complétion, graphiques Recharts et jauges de répartition par statut et priorité.
+
+### 2. Multi-Assignation Collaborateurs
+- **Assignation multiple** : Possibilité d'assigner une même tâche à un ou plusieurs membres de l'équipe.
+- **Badges d'avatars superposés** : Affichage compact et élégant des collaborateurs assignés sur les cartes Kanban et dans les vues détaillées.
+- **Filtres d'équipe** : Filtrage direct par collaborateur pour isoler les tâches d'un membre précis ou afficher rapidement "Mes tâches".
+
+### 3. Checklists & Sous-tâches Interactives
+- **Création & Gestion** : Ajout rapide de sous-tâches au sein de chaque carte avec titre et statut (*fait / à faire*).
 - **Barre de progression dynamique** : Calcul automatique du pourcentage d'achèvement (`X/Y (Z%)`) et barre de jauge animée dans la modale de détail.
 - **Badge d'état sur les cartes** : Indicateur visuel `[X/Y]` avec icône `CheckSquare` sur le Kanban.
-- **Mise à jour instantanée** : Coche/décoche sans rechargement de page avec persistance automatique.
+- **Mise à jour instantanée** : Coche/décoche sans rechargement de page avec persistance automatique en base de données.
 
-### 2. Centre de Notifications In-App & Temps Réel
-- **Badge dynamique** : Compteur de notifications non lues en temps réel au niveau du header et de la barre latérale.
+### 4. Centre de Notifications In-App & Temps Réel
+- **Cloche interactive** : Menu déroulant accessible depuis la barre supérieure (desktop) et l'en-tête mobile.
 - **Notifications instantanées (Socket.io)** : Déclenchement automatique dès qu'un collaborateur est assigné à une tâche ou qu'un commentaire est ajouté.
-- **Menu déroulant (Popover)** : Liste des dernières notifications avec dates relatives, pastilles d'état de lecture et bouton "Tout marquer comme lu".
-- **Toasts visuels & sonores** : Alertes discrètes lors de la réception d'une notification en cours de session.
+- **Actions rapides intégrées** : Marquage individuel comme lu, filtre "Toutes / Non lues", action "Tout marquer comme lu" et suppression instantanée.
+- **Redirection directe** : Clic sur une notification pour naviguer automatiquement vers le tableau de projet concerné.
+- **Toasts visuels** : Alertes discrètes lors de la réception d'une notification en cours de session.
 
-### 3. Couleurs de Couverture & Pièces Jointes
+### 5. Règles d'Automatisation & Champs Personnalisés
+- **Règles d'automatisation (Triggers & Actions)** : Déclencheurs automatiques (ex: passage d'une tâche à "Terminé" marquant automatiquement les sous-tâches comme faites, notifications de rappel).
+- **Champs personnalisés par projet** : Définition de champs sur mesure (texte, nombre, date, sélecteur) adaptés aux besoins spécifiques de chaque projet.
+
+### 6. Palette de Commandes (`Ctrl+K` / `Cmd+K`)
+- **Accès rapide au clavier** : Recherche globale et navigation instantanée dans toute l'application via le raccourci `Ctrl+K`.
+- **Recherche prédictive** : Trouver un tableau, une tâche ou une page en quelques frappes sans quitter la vue active.
+
+### 7. Couleurs de Couverture & Pièces Jointes
 - **Bandeau de couverture (Card Covers)** : Palette de 8 couleurs distinctes pour thématiser et hiérarchiser visuellement les cartes du tableau.
-- **Pièces jointes & Liens externes** : Intégration de liens utiles (Figma, GitHub, Notion, Drive) avec ouverture sécurisée et bouton de suppression.
+- **Pièces jointes & Liens externes** : Intégration de liens utiles (Figma, GitHub, Notion, Google Drive) avec ouverture sécurisée.
 - **Badges Kanban** : Présence d'une icône trombone (`Paperclip`) indiquant le nombre de documents attachés à la carte.
 
-### 4. Filtres Rapides & Filtre "Mes Tâches"
+### 8. Filtres Rapides & Filtre "Mes Tâches"
 - **Toggle "Mes tâches"** : Bouton d'accès rapide dans le bandeau du tableau pour afficher instantanément uniquement les cartes qui vous sont assignées.
 - **Filtres combinés** : Recherche textuelle instantanée et filtre par niveau de priorité (*Basse, Moyenne, Haute, Critique*).
 - **Indicateur de filtres actifs** : Affichage d'un bouton de réinitialisation en un clic dès qu'un filtre est appliqué.
 
-### 5. Mode Sombre Persistant (Dark Mode)
-- **Palette CSS Variables complète** : Thème sombre ultra soigné (`[data-theme="dark"]`) basé sur des tons ardoise et zinc profonds.
-- **Bouton de bascule fluide** : Toggle Soleil / Lune accessible sur la barre latérale desktop et le menu mobile.
-- **Persistance locale** : Sauvegarde immédiate dans le `localStorage` pour conserver votre préférence à chaque visite.
+### 9. Conception Mobile-First & Tailwind CSS v4
+- **Intégration Tailwind CSS v4** : Styling moderne avec classes utilitaires et système de design tokens variables.
+- **Menu Burger Mobile Dédié** :
+  - Tiroir coulissant fluide avec flou d'arrière-plan (*backdrop blur*).
+  - Verrouillage automatique du défilement de fond (`body overflow hidden`) et fermeture via la touche `Échap`.
+  - Carte utilisateur avec avatar, liens de navigation active, raccourcis vers les tableaux récents et bouton de déconnexion.
+  - Cibles tactiles optimisées (minimum 44px) pour une excellente ergonomie sur smartphone.
+- **Adaptation responsive du popover de notification** : Affichage centré pleine largeur adaptative sur écrans mobiles.
 
-### 6. Export des Données du Projet (CSV & JSON)
-- **Format CSV** : Téléchargement tabulaire prêt pour Excel / Google Sheets avec colonnes complètes (*ID, Titre, Statut, Priorité, Assigné, Checklists, Date de création*).
+### 10. Mode Sombre Persistant (Dark Mode)
+- **Palette CSS Variables complète** : Thème sombre soigné (`[data-theme="dark"]`) basé sur des tons ardoise et zinc profonds.
+- **Bouton de bascule fluide** : Toggle Soleil / Lune accessible sur la barre latérale desktop et l'en-tête mobile.
+- **Persistance locale** : Sauvegarde immédiate dans le `localStorage` pour conserver la préférence à chaque visite.
+
+### 11. Export des Données du Projet (CSV & JSON)
+- **Format CSV** : Téléchargement tabulaire prêt pour Excel / Google Sheets avec colonnes complètes (*ID, Titre, Statut, Priorité, Assignés, Checklists, Date de création*).
 - **Format JSON** : Export complet de l'arborescence du projet avec toutes ses métadonnées, sous-tâches et commentaires.
 
-### 7. Gestion du Profil & Avatars Stylisés
+### 12. Gestion du Profil & Avatars Stylisés
 - **Choix d'avatar prédéfini** : Galerie de 8 avatars modernes au style Notion / Dicebear sélectionnables en un clic.
-- **URL d'image personnalisée** : Champ direct pour renseigner l'URL de votre propre photo avec aperçu en temps réel.
-- **Réinitialisation rapide** : Restauration immédiate de l'avatar basé sur vos initiales.
+- **URL d'image personnalisée** : Champ direct pour renseigner l'URL de votre propre photo avec aperçu en direct.
 - **Sécurité du compte** : Modification sécurisée du mot de passe avec contrôle de l'ancien mot de passe.
 
 ---
 
-## Expérience Utilisateur & Design
-
-### Architecture Visuelle Mobile-First
-- **Zéro scroll vertical sur la page du tableau** : Le conteneur du tableau occupe 100% de la hauteur disponible (`100vh` sur desktop, adapté sur mobile) sans barre de défilement globale indésirable.
-- **Canvas Kanban fluide** : Défilement horizontal des colonnes de listes avec *scroll-snap* sur smartphones et tablettes.
-- **Défilement interne des cartes** : Chaque colonne dispose de sa propre zone de défilement vertical indépendante.
-- **Iconographie professionnelle shadcn / Lucide** : Utilisation exclusive des icônes SVG vectorielles (`lucide-react`). Aucune émoticône ni sticker fantaisiste pour un rendu épuré et professionnel.
-
-### Vues Multiples Intégrées
-1. **Vue Tableau (Kanban)** : Glisser-déposer (*Drag & Drop*) fluide des cartes entre colonnes (*À faire*, *En cours*, *En révision*, *Terminé*).
-2. **Vue Liste (Tabulaire)** : Tableau récapitulatif avec tri, changement rapide de statut, priorité, échéance et membre assigné.
-3. **Vue Métriques** : Tableau de bord visuel avec taux de complétion dynamique et jauges de répartition par statut.
-
----
-
-## Système d'Assignation & Règles Métier
-
-Pour garantir un flux de travail collaboratif cohérent et sécurisé :
-1. **Assignation réservée aux collaborateurs ajoutés** : Seuls les membres invités sur le tableau apparaissent dans le menu d'assignation d'une tâche.
-2. **Exclusion stricte de soi-même** : L'utilisateur connecté ne peut pas s'assigner une carte à lui-même (`m.id !== user.id`). Cela favorise la délégation et la responsabilisation des collaborateurs de l'équipe.
-3. **Validation & Protection Backend (400 Bad Request)** : L'API vérifie systématiquement que l'assigné n'est pas l'auteur de la requête et qu'il fait bien partie des membres enregistrés du projet dans la table `ProjectMembers`.
-4. **Gestion des membres** : Le créateur du tableau peut inviter de nouveaux collaborateurs via le bouton **"Inviter"** avec recherche et ajout instantané.
-
----
-
-## Bonnes Pratiques de Développement & Sécurité
+## Bonnes Pratiques & Sécurité
 
 ### Sécurité du Backend
 - **Contrôle d'accès basé sur les rôles (RBAC)** : Vérification rigoureuse des droits d'accès sur chaque route.
 - **Authentification JWT Sécurisée** : Tokens signés transmis via le header standard `Authorization: Bearer <token>`.
 - **Chiffrement des mots de passe** : Hachage fort avec `bcryptjs` (12 tours de salage).
-- **Protection des en-têtes HTTP** : Intégration de `helmet` pour la protection contre le XSS, sniffing MIME, et clickjacking.
+- **Protection des en-têtes HTTP** : Intégration de `helmet` pour la protection contre le XSS, reniflage MIME, et clickjacking.
 - **Politique CORS restrictive** : Configuration whitelist autorisant uniquement les origines officielles Vercel et le localhost.
 - **Limitation de débit (Rate Limiting)** : Protection anti-brute-force sur les routes d'authentification et l'API générale.
 - **Sanitisation et validation des entrées** : Contrôle des payloads avec `express-validator` et validation stricte des identifiants et des statuts autorisés.
@@ -111,7 +114,7 @@ Pour garantir un flux de travail collaboratif cohérent et sécurisé :
 - **State Management prévisible** : Stores modulaires avec `zustand` (`authStore`, `projectStore`, `notificationStore`, `themeStore`).
 - **Gestion optimiste des états (Optimistic UI)** : Déplacement instantané des cartes lors du drag & drop avec rollback automatique en cas d'erreur réseau.
 - **Intercepteur Axios sécurisé** : Injection automatique du token JWT et gestion centralisée des erreurs 401 avec déconnexion propre.
-- **Mobile-First & Accessibilité** : Layout entièrement responsive conçu pour smartphone, tablette et écran large.
+- **Analyse Web Vercel** : Intégration non bloquante de `@vercel/analytics`.
 
 ---
 
@@ -130,11 +133,10 @@ npm test
 - **Authentification & Sécurité** (Rejet d'identifiants erronés, génération de token JWT, récupération du profil `/auth/me`)
 - **Gestion des Projets & Collaborateurs** (Création de projet, ajout d'un membre avec rôle éditeur)
 - **Règles Métier Tâches** :
-  - **Garde-fou anti auto-assignation** (rejet avec HTTP 400 si un créateur s'auto-assigne une tâche)
-  - **Création complète** (couleur de couverture, sous-tâches checklists, pièces jointes, assignation à un collaborateur)
+  - **Création complète** (couleur de couverture, sous-tâches checklists, pièces jointes, assignation multiple)
   - **Mise à jour interactive de checklist**
   - **Ajout de commentaire & notification**
-- **Centre de notifications** (Réception temps réel, marquage d'une notification comme lue, marquage global comme lu)
+- **Centre de notifications** (Réception temps réel, marquage comme lu, suppression, marquage global comme lu)
 - **Nettoyage & Intégrité** (Suppression de la tâche et suppression du projet en cascade)
 
 ---
@@ -143,10 +145,10 @@ npm test
 
 | Couche | Technologies |
 | :--- | :--- |
-| **Frontend** | React 18, Vite, Zustand, React Router v6, Lucide React, @hello-pangea/dnd, Date-fns, React Hot Toast |
-| **Backend** | Node.js (v22+), Express 4, Socket.io, Sequelize ORM 6 |
+| **Frontend** | React 18, Vite 5, Tailwind CSS v4, Zustand, React Router v6, Lucide React, @hello-pangea/dnd, Recharts, Date-fns, React Hot Toast, @vercel/analytics |
+| **Backend** | Node.js (v22+), Express 4, Socket.io 4, Sequelize ORM 6 |
 | **Base de Données** | SQLite (développement local) / PostgreSQL (production Railway) |
-| **Sécurité** | JWT, Bcryptjs (12 rounds), Helmet, Express-Rate-Limit, CORS |
+| **Sécurité** | JWT, Bcryptjs (12 rounds), Helmet, Express-Rate-Limit, CORS whitelist |
 | **Tests** | Node.js Native Test Runner (`node:test`, `node:assert`) |
 | **Déploiement** | Vercel (SPA Frontend), Railway (API REST + WebSockets) |
 
@@ -161,8 +163,8 @@ npm test
 
 ### 1. Cloner le dépôt
 ```bash
-git clone https://github.com/erickouta/taskflow.git
-cd taskflow
+git clone https://github.com/Ericjason2/Taskflow.git
+cd Taskflow
 ```
 
 ### 2. Démarrage du Backend
@@ -193,23 +195,25 @@ npm run dev
 
 ```
 taskflow/
-├── client/                     # Application React SPA (Vite)
+├── client/                     # Application React SPA (Vite + Tailwind CSS v4)
 │   ├── src/
 │   │   ├── components/         # Composants réutilisables
-│   │   │   ├── common/         # Modales, NotificationDropdown, ThemeToggle, ConfirmDialog
-│   │   │   ├── layout/         # AppLayout, Sidebar, MobileHeader
-│   │   │   └── tasks/          # KanbanBoard, TaskModal, TaskDetailModal
-│   │   ├── pages/              # Pages (Dashboard, Projects, ProjectDetail, Profile, Login...)
+│   │   │   ├── common/         # NotificationDropdown, CommandPalette, ThemeToggle, ConfirmModal...
+│   │   │   ├── layout/         # AppLayout, Sidebar, AppTopBar, MobileHeader
+│   │   │   ├── projects/       # ProjectCard, ProjectModal, AutomationModal...
+│   │   │   └── tasks/          # KanbanBoard, TaskModal, TaskDetailModal, CalendarView...
+│   │   ├── pages/              # Pages (Dashboard, Projects, ProjectDetail, Profile, Login, Register)
 │   │   ├── services/           # Instances API (Axios), intercepteurs, Socket.io
 │   │   ├── store/              # Stores Zustand (auth, project, notification, theme)
-│   │   └── styles/             # Styles globaux, variables CSS, thèmes clair/sombre
-│   └── vite.config.js
+│   │   └── styles/             # Styles globaux, variables CSS et intégration Tailwind v4
+│   ├── vite.config.js          # Configuration Vite avec plugin Tailwind CSS v4
+│   └── package.json
 │
 ├── server/                     # API REST Node.js / Express
 │   ├── config/                 # Connexion Sequelize & seed automatique
-│   ├── controllers/            # Contrôleurs (auth, project, task, notification, user, stats)
+│   ├── controllers/            # Contrôleurs (auth, project, task, notification, user, stats, fields, automation)
 │   ├── middleware/             # Authentification JWT, validation des rôles, rate-limit
-│   ├── models/                 # Modèles Sequelize (User, Project, Task, Notification...)
+│   ├── models/                 # Modèles Sequelize (User, Project, Task, Notification, Rule, CustomField...)
 │   ├── routes/                 # Définition des routes de l'API
 │   ├── test-suite.js           # Suite de tests d'intégration automatisée
 │   └── index.js                # Point d'entrée serveur, Socket.io, migrations automatiques
@@ -223,7 +227,7 @@ taskflow/
 ## Auteur
 
 **Eric Kouta** — Développeur Full-Stack
-- GitHub : [@erickouta](https://github.com/erickouta)
+- GitHub : [@Ericjason2](https://github.com/Ericjason2)
 - Email : erickouta6@gmail.com
 
 ---

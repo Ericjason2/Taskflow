@@ -157,17 +157,28 @@ exports.createProject = async (req, res) => {
       user_id: req.user.id,
       role: "owner",
     });
-    // Add other members
+    // Add other members & notify them
     if (membres && membres.length > 0) {
-      await Promise.all(
-        membres.map((m) =>
-          ProjectMember.create({
-            projet_id: project.id,
-            user_id: m.id || m,
-            role: m.role || "editor",
-          }),
-        ),
-      );
+      const { sendNotification } = require("./notificationController");
+      for (const m of membres) {
+        const memberId = m.id || m;
+        await ProjectMember.create({
+          projet_id: project.id,
+          user_id: memberId,
+          role: m.role || "editor",
+        });
+        if (memberId !== req.user.id) {
+          await sendNotification({
+            userId: memberId,
+            expediteurId: req.user.id,
+            projetId: project.id,
+            type: "project_invitation",
+            titre: "Invitation au tableau",
+            message: `${req.user.nom} vous a ajouté comme collaborateur sur "${titre}"`,
+            io: req.io,
+          });
+        }
+      }
     }
     await logActivity(
       "project_created",
@@ -308,6 +319,19 @@ exports.addMember = async (req, res) => {
     const user = await User.findByPk(user_id, {
       attributes: ["id", "nom", "email", "avatar"],
     });
+
+    // Notify the newly added member
+    const { sendNotification } = require("./notificationController");
+    await sendNotification({
+      userId: user_id,
+      expediteurId: req.user.id,
+      projetId: project.id,
+      type: "project_invitation",
+      titre: "Invitation au tableau",
+      message: `${req.user.nom} vous a invité à collaborer sur le tableau "${project.titre}"`,
+      io: req.io,
+    });
+
     res.json({ success: true, message: "Membre ajouté", user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

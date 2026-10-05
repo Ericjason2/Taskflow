@@ -19,6 +19,7 @@ import { fr } from "date-fns/locale";
 import { taskAPI } from "../../services/api";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
+import UserAvatar from "../common/UserAvatar";
 import toast from "react-hot-toast";
 
 const STATUT_LABELS = {
@@ -304,16 +305,7 @@ export default function TaskDetailModal({
               </p>
               {task.assigne ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div
-                    className="avatar avatar-sm"
-                    style={{
-                      background: "var(--accent-subtle)",
-                      color: "var(--accent)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {task.assigne.nom?.[0]?.toUpperCase()}
-                  </div>
+                  <UserAvatar user={task.assigne} size="sm" />
                   <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
                     {task.assigne.nom}
                   </span>
@@ -678,17 +670,7 @@ export default function TaskDetailModal({
                       border: "1px solid var(--border)",
                     }}
                   >
-                    <div
-                      className="avatar avatar-sm"
-                      style={{
-                        flexShrink: 0,
-                        background: "var(--accent-subtle)",
-                        color: "var(--accent)",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {c.auteur?.nom?.[0]?.toUpperCase()}
-                    </div>
+                    <UserAvatar user={c.auteur} size="sm" style={{ flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
                       <div
                         style={{

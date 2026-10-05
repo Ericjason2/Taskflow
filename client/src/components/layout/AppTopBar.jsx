@@ -4,6 +4,7 @@ import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
 import NotificationDropdown from "../common/NotificationDropdown";
 import ThemeToggle from "../common/ThemeToggle";
+import UserAvatar from "../common/UserAvatar";
 
 export default function AppTopBar() {
   const location = useLocation();
@@ -61,13 +62,7 @@ export default function AppTopBar() {
 
         {/* User Profile Chip */}
         <Link to="/profile" className="topbar-user-chip" title="Accéder à mon profil">
-          <div className="avatar avatar-xs topbar-avatar">
-            {user?.avatar ? (
-              <img src={user.avatar} alt={user.nom} />
-            ) : (
-              initials
-            )}
-          </div>
+          <UserAvatar user={user} size="xs" className="topbar-avatar" />
           <span className="topbar-user-name">{user?.nom?.split(" ")[0] || "Profil"}</span>
         </Link>
       </div>

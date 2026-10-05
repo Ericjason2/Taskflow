@@ -22,16 +22,28 @@ const getSocketURL = () => {
   return url.replace(/\/api\/?$/, "");
 };
 
+let currentUserId = null;
+
 export const getSocket = () => {
   if (!socket) {
     socket = io(getSocketURL(), { autoConnect: false });
+
+    socket.on('connect', () => {
+      if (currentUserId) {
+        socket.emit('join_user', currentUserId);
+      }
+    });
   }
   return socket;
 };
 
-export const connectSocket = () => {
+export const connectSocket = (userId = null) => {
+  if (userId) currentUserId = userId;
   const s = getSocket();
   if (!s.connected) s.connect();
+  if (userId && s.connected) {
+    s.emit('join_user', userId);
+  }
   return s;
 };
 
@@ -48,5 +60,9 @@ export const leaveProject = (projectId) => {
 };
 
 export const joinUser = (userId) => {
-  getSocket().emit('join_user', userId);
+  currentUserId = userId;
+  const s = getSocket();
+  if (s.connected) {
+    s.emit('join_user', userId);
+  }
 };

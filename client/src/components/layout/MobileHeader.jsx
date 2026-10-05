@@ -5,6 +5,7 @@ import useAuthStore from '../../store/authStore';
 import useProjectStore from '../../store/projectStore';
 import NotificationDropdown from '../common/NotificationDropdown';
 import ThemeToggle from '../common/ThemeToggle';
+import UserAvatar from '../common/UserAvatar';
 import toast from 'react-hot-toast';
 
 export default function MobileHeader() {
@@ -57,13 +58,7 @@ export default function MobileHeader() {
           <nav className="mobile-nav" onClick={(e) => e.stopPropagation()}>
             {/* User Profile Card */}
             <div className="mobile-user-card">
-              <div className="avatar avatar-md" style={{ overflow: 'hidden' }}>
-                {user?.avatar ? (
-                  <img src={user.avatar} alt={user?.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  initials
-                )}
-              </div>
+              <UserAvatar user={user} size="md" />
               <div className="mobile-user-info">
                 <span className="mobile-user-name">{user?.nom || 'Utilisateur'}</span>
                 <span className="mobile-user-email">{user?.email}</span>

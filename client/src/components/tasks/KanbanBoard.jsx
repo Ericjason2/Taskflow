@@ -22,6 +22,7 @@ import {
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import useProjectStore from "../../store/projectStore";
+import UserAvatar from "../common/UserAvatar";
 import toast from "react-hot-toast";
 
 const COLUMNS = [
@@ -219,24 +220,7 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
 
             <div className="card-assignee-right">
               {task.assigne ? (
-                <div
-                  className="avatar avatar-xs"
-                  title={`Assigné à ${task.assigne.nom}`}
-                >
-                  {task.assigne.avatar ? (
-                    <img
-                      src={task.assigne.avatar}
-                      alt=""
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        borderRadius: "50%",
-                      }}
-                    />
-                  ) : (
-                    task.assigne.nom?.[0]?.toUpperCase()
-                  )}
-                </div>
+                <UserAvatar user={task.assigne} size="xs" title={`Assigné à ${task.assigne.nom}`} />
               ) : (
                 <span className="unassigned-hint" title="Non assigné">
                   Libre

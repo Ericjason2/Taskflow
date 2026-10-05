@@ -4,6 +4,7 @@ import { taskAPI } from "../../services/api";
 import useAuthStore from "../../store/authStore";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import UserAvatar from "../common/UserAvatar";
 import toast from "react-hot-toast";
 
 const STATUT_LABELS = {
@@ -138,16 +139,7 @@ export default function TaskDetail({
                 {task.assigne && (
                   <div className="td-meta-item">
                     <User size={14} className="td-meta-icon" />
-                    <div
-                      className="avatar avatar-sm"
-                      style={{
-                        background: "var(--accent-subtle)",
-                        color: "var(--accent)",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {task.assigne.nom?.[0]?.toUpperCase()}
-                    </div>
+                    <UserAvatar user={task.assigne} size="sm" />
                     <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                       {task.assigne.nom}
                     </span>
@@ -221,17 +213,7 @@ export default function TaskDetail({
                 <div className="td-comments">
                   {task.commentaires?.map((c) => (
                     <div key={c.id} className="td-comment">
-                      <div
-                        className="avatar avatar-sm"
-                        style={{
-                          flexShrink: 0,
-                          background: "var(--accent-subtle)",
-                          color: "var(--accent)",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {c.auteur?.nom?.[0]?.toUpperCase()}
-                      </div>
+                      <UserAvatar user={c.auteur} size="sm" style={{ flexShrink: 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div
                           style={{
@@ -299,16 +281,7 @@ export default function TaskDetail({
                   )}
                 </div>
                 <form onSubmit={sendComment} className="td-comment-form">
-                  <div
-                    className="avatar avatar-sm"
-                    style={{
-                      background: "var(--accent-subtle)",
-                      color: "var(--accent)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {user?.nom?.[0]?.toUpperCase()}
-                  </div>
+                  <UserAvatar user={user} size="sm" />
                   <input
                     type="text"
                     className="form-input"

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { User, Mail, Lock, Save, Shield, Trash2, Users, X, Image as ImageIcon, Check, RotateCcw } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import { authAPI } from "../services/api";
+import UserAvatar from "../components/common/UserAvatar";
 import toast from "react-hot-toast";
 
 const PRESET_AVATARS = [
@@ -624,16 +625,7 @@ export default function ProfilePage() {
                         >
                           <td style={{ padding: "12px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <div
-                                className="avatar avatar-sm"
-                                style={{
-                                  background: "var(--accent-subtle)",
-                                  color: "var(--accent)",
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {u.nom?.[0]?.toUpperCase()}
-                              </div>
+                              <UserAvatar user={u} size="sm" />
                               <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
                                 {u.nom}
                               </span>

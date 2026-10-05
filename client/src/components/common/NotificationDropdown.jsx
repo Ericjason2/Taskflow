@@ -5,6 +5,7 @@ import useNotificationStore from "../../store/notificationStore";
 import useAuthStore from "../../store/authStore";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import UserAvatar from "./UserAvatar";
 
 export default function NotificationDropdown() {
   const {
@@ -101,13 +102,11 @@ export default function NotificationDropdown() {
                   className={`notif-item ${!notif.lu ? "unread" : ""}`}
                   onClick={() => handleNotificationClick(notif)}
                 >
-                  <div className="notif-avatar">
-                    {notif.expediteur?.avatar ? (
-                      <img src={notif.expediteur.avatar} alt="" />
-                    ) : (
-                      notif.expediteur?.nom?.[0]?.toUpperCase() || "T"
-                    )}
-                  </div>
+                  <UserAvatar
+                    user={notif.expediteur}
+                    size="sm"
+                    className="notif-avatar"
+                  />
                   <div className="notif-content">
                     <p className="notif-item-title">{notif.titre}</p>
                     <p className="notif-item-msg">{notif.message}</p>

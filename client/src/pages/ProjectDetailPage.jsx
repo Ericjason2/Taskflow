@@ -33,6 +33,7 @@ import KanbanBoard from "../components/tasks/KanbanBoard";
 import TaskModal from "../components/tasks/TaskModal";
 import TaskDetailModal from "../components/tasks/TaskDetailModal";
 import ConfirmModal from "../components/common/ConfirmModal";
+import UserAvatar from "../components/common/UserAvatar";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import toast from "react-hot-toast";
@@ -296,10 +297,8 @@ export default function ProjectDetailPage() {
           <div className="board-members-bar">
             {currentProject.membres?.length > 0 && (
               <div className="avatar-group">
-                {currentProject.membres.slice(0, 4).map((m) => (
-                  <div key={m.id} className="avatar avatar-sm" title={m.nom}>
-                    {m.nom?.[0]?.toUpperCase()}
-                  </div>
+                {currentProject.membres.slice(0, 5).map((m) => (
+                  <UserAvatar key={m.id} user={m} size="sm" />
                 ))}
               </div>
             )}
@@ -544,9 +543,7 @@ export default function ProjectDetailPage() {
                   <div className="col-task-assignee">
                     {task.assigne ? (
                       <div className="assignee-cell">
-                        <div className="avatar avatar-xs">
-                          {task.assigne.nom?.[0]?.toUpperCase()}
-                        </div>
+                        <UserAvatar user={task.assigne} size="xs" />
                         <span>{task.assigne.nom.split(" ")[0]}</span>
                       </div>
                     ) : (
@@ -696,9 +693,7 @@ export default function ProjectDetailPage() {
               <div className="members-current-list">
                 {currentProject.membres?.map((m) => (
                   <div key={m.id} className="member-row">
-                    <div className="avatar avatar-sm">
-                      {m.nom?.[0]?.toUpperCase()}
-                    </div>
+                    <UserAvatar user={m} size="sm" />
                     <div className="member-info">
                       <span className="member-name">{m.nom}</span>
                       <span className="member-email">{m.email}</span>
@@ -725,9 +720,7 @@ export default function ProjectDetailPage() {
                       .filter((u) => !memberIds.includes(u.id))
                       .map((u) => (
                         <div key={u.id} className="member-row">
-                          <div className="avatar avatar-sm">
-                            {u.nom?.[0]?.toUpperCase()}
-                          </div>
+                          <UserAvatar user={u} size="sm" />
                           <div className="member-info">
                             <span className="member-name">{u.nom}</span>
                             <span className="member-email">{u.email}</span>

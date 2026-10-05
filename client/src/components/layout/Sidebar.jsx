@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
+import UserAvatar from "../common/UserAvatar";
 import toast from "react-hot-toast";
 
 const navItems = [
@@ -114,22 +115,7 @@ export default function Sidebar() {
       {/* User Footer */}
       <div className="sidebar-footer">
         <div className="user-profile">
-          <div className="avatar avatar-sm">
-            {user?.avatar ? (
-              <img
-                src={user.avatar}
-                alt=""
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                }}
-              />
-            ) : (
-              initials
-            )}
-          </div>
+          <UserAvatar user={user} size="sm" />
           <div className="user-details">
             <p className="user-name">{user?.nom || "Utilisateur"}</p>
             <span className="user-role-pill">

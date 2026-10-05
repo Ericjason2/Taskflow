@@ -13,6 +13,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import UserAvatar from "../common/UserAvatar";
 
 const PRIORITE_CONFIG = {
   basse: { label: "Basse", class: "badge-basse" },
@@ -185,13 +186,7 @@ export default function ProjectCard({
             {membres.length > 0 ? (
               <div className="avatar-group">
                 {membres.slice(0, 3).map((m) => (
-                  <div
-                    key={m.id}
-                    className="avatar avatar-xs"
-                    title={m.nom}
-                  >
-                    {m.nom?.[0]?.toUpperCase()}
-                  </div>
+                  <UserAvatar key={m.id} user={m} size="xs" />
                 ))}
                 {membres.length > 3 && (
                   <div className="avatar avatar-xs extra-badge">

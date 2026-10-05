@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import useProjectStore from "../store/projectStore";
 import useAuthStore from "../store/authStore";
+import UserAvatar from "../components/common/UserAvatar";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -606,19 +607,11 @@ export default function DashboardPage() {
                       marginTop: 4,
                     }}
                   >
-                    <div
-                      className="avatar avatar-sm"
-                      style={{
-                        width: 18,
-                        height: 18,
-                        fontSize: 9,
-                        background: "var(--accent-subtle)",
-                        color: "var(--accent)",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {a.user?.nom?.[0]?.toUpperCase()}
-                    </div>
+                    <UserAvatar
+                      user={a.user}
+                      size="xs"
+                      style={{ width: 18, height: 18, fontSize: 9 }}
+                    />
                     <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
                       {a.user?.nom} ·{" "}
                       {formatDistanceToNow(new Date(a.createdAt), {

@@ -20,7 +20,33 @@ const Task = sequelize.define('Task', {
       try { return JSON.parse(v); } catch { return []; }
     },
     set(val) {
-      this.setDataValue('tags', JSON.stringify(val));
+      this.setDataValue('tags', JSON.stringify(val || []));
+    },
+  },
+  checklists: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const v = this.getDataValue('checklists');
+      try { return JSON.parse(v); } catch { return []; }
+    },
+    set(val) {
+      this.setDataValue('checklists', JSON.stringify(val || []));
+    },
+  },
+  couverture: {
+    type: DataTypes.STRING(255),
+    defaultValue: null,
+  },
+  pieces_jointes: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const v = this.getDataValue('pieces_jointes');
+      try { return JSON.parse(v); } catch { return []; }
+    },
+    set(val) {
+      this.setDataValue('pieces_jointes', JSON.stringify(val || []));
     },
   },
 }, {

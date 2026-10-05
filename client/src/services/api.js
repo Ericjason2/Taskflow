@@ -101,4 +101,12 @@ export const taskAPI = {
     api.delete(`/projects/${projectId}/tasks/${taskId}/comments/${commentId}`),
 };
 
+// Notifications
+export const notificationAPI = {
+  getAll: () => api.get("/notifications"),
+  markAsRead: (id) => api.put(`/notifications/${id}/read`),
+  markAllAsRead: () => api.put("/notifications/read-all"),
+  delete: (id) => api.delete(`/notifications/${id}`),
+};
+
 export default api;

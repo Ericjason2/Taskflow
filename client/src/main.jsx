@@ -4,6 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import App from "./App";
 import "./styles/index.css";
+import useThemeStore from "./store/themeStore";
+
+// Initialize theme attribute on html root
+useThemeStore.getState().initTheme();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -13,11 +17,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         position="top-right"
         toastOptions={{
           style: {
-            background: "#ffffff",
-            color: "#000000",
-            border: "1px solid #cccccc",
+            background: "var(--bg-surface)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border)",
             borderRadius: "10px",
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "var(--font-body)",
             fontSize: "14px",
           },
           success: { iconTheme: { primary: "#10b981", secondary: "#ffffff" } },

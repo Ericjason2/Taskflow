@@ -16,6 +16,8 @@ import {
   Tag,
   MoreHorizontal,
   Sparkles,
+  CheckSquare,
+  Paperclip,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -79,6 +81,14 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
           {...provided.draggableProps}
           className={`trello-card ${snapshot.isDragging ? "is-dragging" : ""}`}
         >
+          {/* Card Cover */}
+          {task.couverture && (
+            <div
+              className="card-cover-band"
+              style={{ background: task.couverture }}
+            />
+          )}
+
           {/* Card Top: Tags & Priority & Quick Actions */}
           <div className="card-top-bar">
             <div className="card-labels-wrapper">
@@ -180,6 +190,29 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
                 <div className="comment-badge" title="Commentaires">
                   <MessageSquare size={12} />
                   <span>{task.commentaires.length}</span>
+                </div>
+              )}
+
+              {/* Subtasks / Checklist count badge */}
+              {task.checklists?.length > 0 && (
+                <div
+                  className={`comment-badge checklist-badge ${
+                    task.checklists.every((c) => c.termine) ? "all-done" : ""
+                  }`}
+                  title={`${task.checklists.filter((c) => c.termine).length} sur ${task.checklists.length} sous-tâches`}
+                >
+                  <CheckSquare size={12} />
+                  <span>
+                    {task.checklists.filter((c) => c.termine).length}/{task.checklists.length}
+                  </span>
+                </div>
+              )}
+
+              {/* Attachments / Links badge */}
+              {task.pieces_jointes?.length > 0 && (
+                <div className="comment-badge" title="Pièces jointes / Liens">
+                  <Paperclip size={12} />
+                  <span>{task.pieces_jointes.length}</span>
                 </div>
               )}
             </div>
@@ -356,7 +389,7 @@ export default function KanbanBoard({
         }
 
         .trello-list-column {
-          background: #f1f5f9;
+          background: var(--kanban-col-bg);
           border: 1px solid var(--border);
           border-radius: var(--radius-lg);
           display: flex;
@@ -393,7 +426,7 @@ export default function KanbanBoard({
           font-size: 11px;
           font-weight: 600;
           color: var(--text-muted);
-          background: #ffffff;
+          background: var(--bg-surface);
           padding: 1px 7px;
           border-radius: 9999px;
           border: 1px solid var(--border);
@@ -413,7 +446,7 @@ export default function KanbanBoard({
         }
 
         .quick-add-col-btn:hover {
-          background: #e2e8f0;
+          background: var(--bg-subtle);
           color: var(--text-primary);
         }
 
@@ -435,7 +468,7 @@ export default function KanbanBoard({
 
         /* Trello Cards */
         .trello-card {
-          background: #ffffff;
+          background: var(--bg-surface);
           border: 1px solid var(--border);
           border-radius: var(--radius-md);
           padding: 12px;
@@ -445,6 +478,17 @@ export default function KanbanBoard({
           gap: 8px;
           cursor: pointer;
           transition: all var(--transition);
+        }
+
+        .card-cover-band {
+          height: 6px;
+          border-radius: 3px;
+          margin-bottom: 2px;
+        }
+
+        .checklist-badge.all-done {
+          color: #10b981 !important;
+          background: rgba(16, 185, 129, 0.12) !important;
         }
 
         .trello-card:hover {

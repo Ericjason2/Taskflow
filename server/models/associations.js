@@ -2,7 +2,7 @@ const sequelize = require('../config/db');
 const User = require('./User');
 const Project = require('./Project');
 const Task = require('./Task');
-const { Comment, ProjectMember, Activity } = require('./index');
+const { Comment, ProjectMember, Activity, Notification } = require('./index');
 
 // User <-> Project (creator)
 Project.belongsTo(User, { as: 'createur', foreignKey: 'createur_id' });
@@ -40,4 +40,11 @@ Task.hasMany(Comment, { as: 'commentaires', foreignKey: 'tache_id' });
 Activity.belongsTo(User, { as: 'user', foreignKey: 'user_id' });
 Activity.belongsTo(Project, { as: 'projet', foreignKey: 'projet_id' });
 
-module.exports = { sequelize, User, Project, Task, Comment, ProjectMember, Activity };
+// Notification
+Notification.belongsTo(User, { as: 'destinataire', foreignKey: 'user_id' });
+Notification.belongsTo(User, { as: 'expediteur', foreignKey: 'expediteur_id' });
+Notification.belongsTo(Project, { as: 'projet', foreignKey: 'projet_id' });
+Notification.belongsTo(Task, { as: 'tache', foreignKey: 'tache_id' });
+User.hasMany(Notification, { as: 'notifications', foreignKey: 'user_id' });
+
+module.exports = { sequelize, User, Project, Task, Comment, ProjectMember, Activity, Notification };

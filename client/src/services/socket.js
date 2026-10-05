@@ -46,3 +46,7 @@ export const joinProject = (projectId) => {
 export const leaveProject = (projectId) => {
   getSocket().emit('leave_project', projectId);
 };
+
+export const joinUser = (userId) => {
+  getSocket().emit('join_user', userId);
+};

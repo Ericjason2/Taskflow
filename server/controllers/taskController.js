@@ -7,6 +7,7 @@ const {
   Project,
   ProjectMember,
 } = require("../models/associations");
+const { sendNotification } = require("./notificationController");
 
 const logActivity = async (
   type,
@@ -68,8 +69,18 @@ exports.getTasks = async (req, res) => {
 exports.createTask = async (req, res) => {
   try {
     const { projet_id } = req.params;
-    const { titre, description, statut, priorite, assigne_a, echeance, tags } =
-      req.body;
+    const {
+      titre,
+      description,
+      statut,
+      priorite,
+      assigne_a,
+      echeance,
+      tags,
+      checklists,
+      couverture,
+      pieces_jointes,
+    } = req.body;
 
     if (!titre || !titre.trim()) {
       return res.status(400).json({ success: false, message: "Le titre de la tâche est requis" });
@@ -124,6 +135,9 @@ exports.createTask = async (req, res) => {
       assigne_a: targetAssignee,
       echeance: echeance || null,
       tags: Array.isArray(tags) ? tags : [],
+      checklists: Array.isArray(checklists) ? checklists : [],
+      couverture: couverture || null,
+      pieces_jointes: Array.isArray(pieces_jointes) ? pieces_jointes : [],
       projet_id,
       cree_par: req.user.id,
     });
@@ -144,6 +158,21 @@ exports.createTask = async (req, res) => {
       projet_id,
       task.id,
     );
+
+    // Notify assignee
+    if (targetAssignee) {
+      await sendNotification({
+        userId: targetAssignee,
+        expediteurId: req.user.id,
+        projetId: projet_id,
+        tacheId: task.id,
+        type: "task_assigned",
+        titre: "Tâche assignée",
+        message: `${req.user.nom} vous a assigné la carte "${task.titre}" dans "${project.titre}"`,
+        io: req.io,
+      });
+    }
+
     res.status(201).json({ success: true, message: "Tâche créée", data: full });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -237,7 +266,23 @@ exports.updateTask = async (req, res) => {
     }
 
     const oldStatut = task.statut;
+    const oldAssignee = task.assigne_a;
     await task.update(req.body);
+
+    // Notify newly assigned collaborator
+    if (req.body.assigne_a && req.body.assigne_a !== oldAssignee && req.body.assigne_a !== req.user.id) {
+      await sendNotification({
+        userId: req.body.assigne_a,
+        expediteurId: req.user.id,
+        projetId: task.projet_id,
+        tacheId: task.id,
+        type: "task_assigned",
+        titre: "Tâche assignée",
+        message: `${req.user.nom} vous a assigné la carte "${task.titre}"`,
+        io: req.io,
+      });
+    }
+
     if (req.body.statut && req.body.statut !== oldStatut) {
       const labels = {
         todo: "À faire",
@@ -358,6 +403,27 @@ exports.addComment = async (req, res) => {
         { model: User, as: "auteur", attributes: ["id", "nom", "avatar"] },
       ],
     });
+
+    // Notify task assignee and creator
+    const task = await Task.findByPk(taskId);
+    if (task) {
+      const recipients = new Set();
+      if (task.assigne_a && task.assigne_a !== req.user.id) recipients.add(task.assigne_a);
+      if (task.cree_par && task.cree_par !== req.user.id) recipients.add(task.cree_par);
+      for (const recId of recipients) {
+        await sendNotification({
+          userId: recId,
+          expediteurId: req.user.id,
+          projetId: task.projet_id,
+          tacheId: task.id,
+          type: "comment_added",
+          titre: "Nouveau commentaire",
+          message: `${req.user.nom} a commenté la carte "${task.titre}" : "${req.body.contenu.slice(0, 65)}"`,
+          io: req.io,
+        });
+      }
+    }
+
     res.status(201).json({ success: true, data: full });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

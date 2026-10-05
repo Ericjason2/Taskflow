@@ -5,6 +5,7 @@ const {
   Task,
   ProjectMember,
   Activity,
+  Notification,
 } = require("../models/associations");
 
 // Utility: log activity
@@ -263,9 +264,11 @@ exports.deleteProject = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Projet introuvable" });
-    if (project.createur_id !== req.user.id) {
+    if (project.createur_id !== req.user.id && req.user.role !== "admin") {
       return res.status(403).json({ success: false, message: "Accès refusé" });
     }
+    await Notification.destroy({ where: { projet_id: project.id } });
+    await Activity.destroy({ where: { projet_id: project.id } });
     await Task.destroy({ where: { projet_id: project.id } });
     await ProjectMember.destroy({ where: { projet_id: project.id } });
     await project.destroy();

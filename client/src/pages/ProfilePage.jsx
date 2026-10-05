@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
-import { User, Mail, Lock, Save, Shield, Trash2, Users, X } from "lucide-react";
+import { User, Mail, Lock, Save, Shield, Trash2, Users, X, Image as ImageIcon, Check, RotateCcw } from "lucide-react";
 import useAuthStore from "../store/authStore";
 import { authAPI } from "../services/api";
 import toast from "react-hot-toast";
+
+const PRESET_AVATARS = [
+  { id: "alex", label: "Alex", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Alex" },
+  { id: "sam", label: "Sam", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Sam" },
+  { id: "felix", label: "Félix", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Felix" },
+  { id: "zoe", label: "Zoé", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Zoe" },
+  { id: "leo", label: "Léo", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Leo" },
+  { id: "maya", label: "Maya", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Maya" },
+  { id: "charlie", label: "Charlie", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Charlie" },
+  { id: "taylor", label: "Taylor", url: "https://api.dicebear.com/7.x/notionists/svg?seed=Taylor" },
+];
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuthStore();
@@ -10,7 +21,18 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     nom: user?.nom || "",
     bio: user?.bio || "",
+    avatar: user?.avatar || "",
   });
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        nom: user.nom || "",
+        bio: user.bio || "",
+        avatar: user.avatar || "",
+      });
+    }
+  }, [user]);
   const [pwForm, setPwForm] = useState({
     current_password: "",
     new_password: "",
@@ -126,16 +148,32 @@ export default function ProfilePage() {
               className="avatar avatar-xl"
               style={{
                 margin: "0 auto 16px",
-                width: 72,
-                height: 72,
-                fontSize: 22,
+                width: 76,
+                height: 76,
+                fontSize: 24,
                 fontWeight: 700,
                 background: "linear-gradient(135deg, #0284c7, #2563eb)",
                 color: "#fff",
                 boxShadow: "0 4px 14px rgba(2, 132, 199, 0.35)",
+                overflow: "hidden",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "50%",
               }}
             >
-              {initials}
+              {form.avatar ? (
+                <img
+                  src={form.avatar}
+                  alt={form.nom || user?.nom}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                initials
+              )}
             </div>
             <h3
               style={{
@@ -270,6 +308,92 @@ export default function ProfilePage() {
                   {errors.nom && (
                     <span className="form-error">{errors.nom}</span>
                   )}
+                </div>
+
+                <div className="form-group">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <label className="form-label" style={{ margin: 0 }}>Avatar / Photo de profil</label>
+                    {form.avatar && (
+                      <button
+                        type="button"
+                        style={{
+                          fontSize: 12,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          background: "none",
+                          border: "none",
+                          color: "var(--danger)",
+                          cursor: "pointer",
+                          padding: 0,
+                          fontWeight: 500,
+                        }}
+                        onClick={() => setForm((f) => ({ ...f, avatar: "" }))}
+                      >
+                        <RotateCcw size={12} /> Réinitialiser aux initiales
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+                    {PRESET_AVATARS.map((preset) => {
+                      const isSelected = form.avatar === preset.url;
+                      return (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, avatar: preset.url }))}
+                          title={preset.label}
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: "50%",
+                            border: isSelected ? "2.5px solid var(--accent)" : "1px solid var(--border)",
+                            boxShadow: isSelected ? "0 0 0 3px var(--accent-subtle)" : "none",
+                            padding: 2,
+                            background: "var(--bg-subtle)",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                            overflow: "hidden",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <img
+                            src={preset.url}
+                            alt={preset.label}
+                            style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="url"
+                      className="form-input"
+                      placeholder="Ou collez l'URL d'une image (ex: https://...)"
+                      value={form.avatar}
+                      onChange={(e) => setForm((f) => ({ ...f, avatar: e.target.value }))}
+                      style={{ paddingLeft: 36 }}
+                    />
+                    <ImageIcon
+                      size={15}
+                      style={{
+                        position: "absolute",
+                        left: 12,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  </div>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, display: "block" }}>
+                    Choisissez parmi nos illustrations stylisées ou spécifiez une URL d'image externe.
+                  </span>
                 </div>
                 <div className="form-group">
                   <label className="form-label">

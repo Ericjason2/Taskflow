@@ -3,6 +3,8 @@ import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { Menu, X, Kanban, LayoutDashboard, User, LogOut, Plus, ChevronRight } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import useProjectStore from '../../store/projectStore';
+import NotificationDropdown from '../common/NotificationDropdown';
+import ThemeToggle from '../common/ThemeToggle';
 import toast from 'react-hot-toast';
 
 export default function MobileHeader() {
@@ -36,21 +38,16 @@ export default function MobileHeader() {
           <span>TaskFlow</span>
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Link
-            to="/projects"
-            className="btn btn-primary btn-sm"
-            style={{ padding: '5px 10px', fontSize: 12, height: 32 }}
-          >
-            <Plus size={14} /> Tableau
-          </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <NotificationDropdown />
+          <ThemeToggle />
           <button
             className="btn btn-ghost btn-icon"
             onClick={() => setOpen(!open)}
             aria-label="Menu de navigation"
-            style={{ width: 36, height: 36 }}
+            style={{ width: 34, height: 34 }}
           >
-            {open ? <X size={20} /> : <Menu size={20} />}
+            {open ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </header>
@@ -60,7 +57,13 @@ export default function MobileHeader() {
           <nav className="mobile-nav" onClick={(e) => e.stopPropagation()}>
             {/* User Profile Card */}
             <div className="mobile-user-card">
-              <div className="avatar avatar-md">{initials}</div>
+              <div className="avatar avatar-md" style={{ overflow: 'hidden' }}>
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user?.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  initials
+                )}
+              </div>
               <div className="mobile-user-info">
                 <span className="mobile-user-name">{user?.nom || 'Utilisateur'}</span>
                 <span className="mobile-user-email">{user?.email}</span>

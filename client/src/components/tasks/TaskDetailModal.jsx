@@ -9,11 +9,16 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
+  CheckSquare,
+  Plus,
+  Paperclip,
+  ExternalLink,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { taskAPI } from "../../services/api";
 import useAuthStore from "../../store/authStore";
+import useProjectStore from "../../store/projectStore";
 import toast from "react-hot-toast";
 
 const STATUT_LABELS = {
@@ -38,13 +43,23 @@ export default function TaskDetailModal({
   onUpdate,
 }) {
   const { user } = useAuthStore();
+  const { updateTask } = useProjectStore();
   const [comments, setComments] = useState([]);
+  const [checklists, setChecklists] = useState([]);
+  const [attachments, setAttachments] = useState([]);
   const [newComment, setNewComment] = useState("");
+  const [newChecklistText, setNewChecklistText] = useState("");
+  const [newAttNom, setNewAttNom] = useState("");
+  const [newAttUrl, setNewAttUrl] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (open && task) loadTask();
+    if (open && task) {
+      loadTask();
+      setChecklists(task.checklists || []);
+      setAttachments(task.pieces_jointes || []);
+    }
   }, [open, task?.id]);
 
   const loadTask = async () => {
@@ -52,6 +67,8 @@ export default function TaskDetailModal({
     try {
       const { data } = await taskAPI.getOne(projectId, task.id);
       setComments(data.data.commentaires || []);
+      if (data.data.checklists) setChecklists(data.data.checklists);
+      if (data.data.pieces_jointes) setAttachments(data.data.pieces_jointes);
     } catch (_) {}
     setLoading(false);
   };
@@ -63,6 +80,85 @@ export default function TaskDetailModal({
     new Date(task.echeance) < new Date() &&
     task.statut !== "done";
 
+  // Checklists
+  const completedChecklistCount = checklists.filter((c) => c.termine).length;
+  const checklistPercent =
+    checklists.length > 0
+      ? Math.round((completedChecklistCount / checklists.length) * 100)
+      : 0;
+
+  const handleToggleChecklist = async (itemId) => {
+    const updated = checklists.map((c) =>
+      c.id === itemId ? { ...c, termine: !c.termine } : c
+    );
+    setChecklists(updated);
+    try {
+      await updateTask(projectId, task.id, { checklists: updated });
+    } catch (_) {
+      toast.error("Erreur de sauvegarde");
+    }
+  };
+
+  const handleAddChecklist = async () => {
+    if (!newChecklistText.trim()) return;
+    const newItem = {
+      id: Date.now(),
+      texte: newChecklistText.trim(),
+      termine: false,
+    };
+    const updated = [...checklists, newItem];
+    setChecklists(updated);
+    setNewChecklistText("");
+    try {
+      await updateTask(projectId, task.id, { checklists: updated });
+      toast.success("Sous-tâche ajoutée");
+    } catch (_) {
+      toast.error("Erreur");
+    }
+  };
+
+  const handleDeleteChecklist = async (itemId) => {
+    const updated = checklists.filter((c) => c.id !== itemId);
+    setChecklists(updated);
+    try {
+      await updateTask(projectId, task.id, { checklists: updated });
+    } catch (_) {}
+  };
+
+  // Attachments
+  const handleAddAttachment = async () => {
+    if (!newAttNom.trim() || !newAttUrl.trim()) return;
+    let url = newAttUrl.trim();
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = `https://${url}`;
+    }
+    const newAtt = {
+      id: Date.now(),
+      nom: newAttNom.trim(),
+      url,
+      date: new Date().toISOString(),
+    };
+    const updated = [...attachments, newAtt];
+    setAttachments(updated);
+    setNewAttNom("");
+    setNewAttUrl("");
+    try {
+      await updateTask(projectId, task.id, { pieces_jointes: updated });
+      toast.success("Lien ajouté");
+    } catch (_) {
+      toast.error("Erreur");
+    }
+  };
+
+  const handleDeleteAttachment = async (attId) => {
+    const updated = attachments.filter((a) => a.id !== attId);
+    setAttachments(updated);
+    try {
+      await updateTask(projectId, task.id, { pieces_jointes: updated });
+    } catch (_) {}
+  };
+
+  // Comments
   const sendComment = async () => {
     if (!newComment.trim()) return;
     setSending(true);
@@ -93,10 +189,22 @@ export default function TaskDetailModal({
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal"
-        style={{ maxWidth: 640 }}
+        style={{ maxWidth: 640, maxHeight: "92vh" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header" style={{ alignItems: "flex-start", padding: "20px 24px 16px" }}>
+        {/* Cover Band */}
+        {task.couverture && (
+          <div
+            style={{
+              height: 14,
+              background: task.couverture,
+              borderRadius: "14px 14px 0 0",
+              margin: "-24px -24px 18px -24px",
+            }}
+          />
+        )}
+
+        <div className="modal-header" style={{ alignItems: "flex-start", padding: "16px 24px 14px" }}>
           <div style={{ flex: 1, minWidth: 0, paddingRight: 16 }}>
             <h2
               style={{
@@ -133,6 +241,7 @@ export default function TaskDetailModal({
         </div>
 
         <div className="modal-body" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Description */}
           {task.description && (
             <div>
               <div
@@ -165,6 +274,7 @@ export default function TaskDetailModal({
             </div>
           )}
 
+          {/* Member & Due Date */}
           <div
             style={{
               display: "grid",
@@ -228,7 +338,7 @@ export default function TaskDetailModal({
               <p
                 style={{
                   fontSize: 11,
-                  color: isOverdue ? "var(--danger)" : "var(--text-muted)",
+                  color: isOverdue ? "#ef4444" : "var(--text-muted)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   margin: "0 0 6px 0",
@@ -239,14 +349,14 @@ export default function TaskDetailModal({
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {isOverdue ? (
-                  <AlertCircle size={15} color="var(--danger)" />
+                  <AlertCircle size={15} color="#ef4444" />
                 ) : (
                   <Calendar size={15} color="var(--text-secondary)" />
                 )}
                 <span
                   style={{
                     fontSize: 13,
-                    color: isOverdue ? "var(--danger)" : "var(--text-primary)",
+                    color: isOverdue ? "#ef4444" : "var(--text-primary)",
                     fontWeight: 500,
                   }}
                 >
@@ -261,6 +371,7 @@ export default function TaskDetailModal({
             </div>
           </div>
 
+          {/* Tags */}
           {task.tags?.length > 0 && (
             <div>
               <div
@@ -303,8 +414,217 @@ export default function TaskDetailModal({
             </div>
           )}
 
-          {/* Discussion / Comments Section */}
-          <div style={{ marginTop: 4, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+          {/* Interactive Checklists / Subtasks */}
+          <div
+            style={{
+              background: "var(--bg-subtle)",
+              borderRadius: "var(--radius-lg)",
+              padding: "16px",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <CheckSquare size={16} color="var(--accent)" />
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                  Checklist & Sous-tâches
+                </span>
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
+                {completedChecklistCount}/{checklists.length} ({checklistPercent}%)
+              </span>
+            </div>
+
+            {/* Progress bar */}
+            <div
+              style={{
+                height: 6,
+                background: "var(--border)",
+                borderRadius: 9999,
+                overflow: "hidden",
+                marginBottom: 12,
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${checklistPercent}%`,
+                  background: checklistPercent === 100 ? "#10b981" : "var(--accent)",
+                  transition: "width 0.25s ease",
+                  borderRadius: 9999,
+                }}
+              />
+            </div>
+
+            {/* Checklist items */}
+            {checklists.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                {checklists.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 9,
+                      padding: "6px 10px",
+                      background: "var(--bg-surface)",
+                      borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={item.termine}
+                      onChange={() => handleToggleChecklist(item.id)}
+                      style={{ cursor: "pointer", width: 16, height: 16, accentColor: "var(--accent)" }}
+                    />
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: 13,
+                        textDecoration: item.termine ? "line-through" : "none",
+                        color: item.termine ? "var(--text-muted)" : "var(--text-primary)",
+                      }}
+                    >
+                      {item.texte}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteChecklist(item.id)}
+                      style={{ background: "none", border: "none", color: "var(--text-light)", cursor: "pointer", padding: 2 }}
+                      title="Supprimer"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add checklist item */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Ajouter une sous-tâche..."
+                value={newChecklistText}
+                onChange={(e) => setNewChecklistText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddChecklist();
+                  }
+                }}
+                style={{ height: 34, fontSize: 12.5 }}
+              />
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                onClick={handleAddChecklist}
+                style={{ height: 34 }}
+              >
+                <Plus size={13} /> Ajouter
+              </button>
+            </div>
+          </div>
+
+          {/* Attachments & Links */}
+          <div
+            style={{
+              background: "var(--bg-subtle)",
+              borderRadius: "var(--radius-lg)",
+              padding: "16px",
+              border: "1px solid var(--border)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <Paperclip size={16} color="var(--accent)" />
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                Pièces jointes & Liens ({attachments.length})
+              </span>
+            </div>
+
+            {attachments.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                {attachments.map((att) => (
+                  <div
+                    key={att.id}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "8px 12px",
+                      background: "var(--bg-surface)",
+                      borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--border)",
+                    }}
+                  >
+                    <ExternalLink size={14} color="var(--accent)" />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <a
+                        href={att.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "var(--accent)",
+                          textDecoration: "underline",
+                          display: "block",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {att.nom}
+                      </a>
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                        {att.url}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAttachment(att.id)}
+                      style={{ background: "none", border: "none", color: "var(--text-light)", cursor: "pointer", padding: 2 }}
+                      title="Supprimer"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr auto", gap: 8 }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Nom du lien (ex: Spécification)"
+                value={newAttNom}
+                onChange={(e) => setNewAttNom(e.target.value)}
+                style={{ height: 34, fontSize: 12.5 }}
+              />
+              <input
+                type="text"
+                className="form-input"
+                placeholder="URL (ex: figma.com/...)"
+                value={newAttUrl}
+                onChange={(e) => setNewAttUrl(e.target.value)}
+                style={{ height: 34, fontSize: 12.5 }}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={handleAddAttachment}
+                style={{ height: 34 }}
+              >
+                <Plus size={13} /> Joindre
+              </button>
+            </div>
+          </div>
+
+          {/* Comments Section */}
+          <div>
             <div
               style={{
                 display: "flex",
@@ -313,18 +633,16 @@ export default function TaskDetailModal({
                 marginBottom: 12,
               }}
             >
-              <MessageSquare size={16} color="var(--accent)" />
-              <h4
+              <MessageSquare size={16} color="var(--text-secondary)" />
+              <span
                 style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  fontFamily: "var(--font-display)",
-                  margin: 0,
+                  fontSize: 13,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
                 Activité & Commentaires ({comments.length})
-              </h4>
+              </span>
             </div>
 
             {loading ? (
@@ -332,7 +650,7 @@ export default function TaskDetailModal({
                 style={{
                   display: "flex",
                   justifyContent: "center",
-                  padding: 20,
+                  padding: 24,
                 }}
               >
                 <span className="spinner" />
@@ -343,8 +661,8 @@ export default function TaskDetailModal({
                   display: "flex",
                   flexDirection: "column",
                   gap: 10,
-                  marginBottom: 14,
-                  maxHeight: 220,
+                  marginBottom: 16,
+                  maxHeight: 280,
                   overflowY: "auto",
                 }}
               >

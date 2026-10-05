@@ -21,6 +21,10 @@ import {
   Edit2,
   Trash2,
   Share2,
+  UserCheck,
+  Download,
+  FileSpreadsheet,
+  FileJson,
 } from "lucide-react";
 import useProjectStore from "../store/projectStore";
 import useAuthStore from "../store/authStore";
@@ -66,6 +70,8 @@ export default function ProjectDetailPage() {
   const [filterPriority, setFilterPriority] = useState("");
   const [memberModalOpen, setMemberModalOpen] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
+  const [onlyMyTasks, setOnlyMyTasks] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   // Starred board state in localStorage
   const [isStarred, setIsStarred] = useState(() => {
@@ -103,8 +109,57 @@ export default function ProjectDetailPage() {
     const matchSearch =
       !search || t.titre.toLowerCase().includes(search.toLowerCase());
     const matchPriority = !filterPriority || t.priorite === filterPriority;
-    return matchSearch && matchPriority;
+    const matchMyTasks = !onlyMyTasks || t.assigne_a === user?.id;
+    return matchSearch && matchPriority && matchMyTasks;
   });
+
+  const exportCSV = () => {
+    if (!tasks || tasks.length === 0) {
+      toast.error("Aucune tâche à exporter");
+      return;
+    }
+    const headers = [
+      "ID",
+      "Titre",
+      "Statut",
+      "Priorite",
+      "Assigné à",
+      "Echeance",
+      "Sous-tâches terminées",
+      "Total sous-tâches",
+    ];
+    const rows = tasks.map((t) => [
+      t.id,
+      `"${(t.titre || "").replace(/"/g, '""')}"`,
+      t.statut,
+      t.priorite,
+      `"${(t.assigne?.nom || "Non assigné").replace(/"/g, '""')}"`,
+      t.echeance || "",
+      (t.checklists || []).filter((c) => c.termine).length,
+      (t.checklists || []).length,
+    ]);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `projet-${(currentProject?.titre || "export").toLowerCase().replace(/\s+/g, "-")}-taches.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export CSV téléchargé !");
+  };
+
+  const exportJSON = () => {
+    const dataStr = JSON.stringify({ projet: currentProject, taches: tasks }, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `projet-${(currentProject?.titre || "export").toLowerCase().replace(/\s+/g, "-")}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Export JSON téléchargé !");
+  };
 
   const handleAddTask = (status = "todo") => {
     setDefaultStatus(status);
@@ -260,6 +315,45 @@ export default function ProjectDetailPage() {
             )}
           </div>
 
+          {/* Export Dropdown */}
+          <div className="dropdown" style={{ position: "relative" }}>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setExportMenuOpen(!exportMenuOpen)}
+              title="Exporter le projet"
+            >
+              <Download size={13} />
+              <span>Exporter</span>
+            </button>
+            {exportMenuOpen && (
+              <div
+                className="dropdown-menu"
+                style={{ right: 0, top: "calc(100% + 4px)", minWidth: 155 }}
+              >
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    exportCSV();
+                    setExportMenuOpen(false);
+                  }}
+                >
+                  <FileSpreadsheet size={13} />
+                  <span>Format CSV</span>
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    exportJSON();
+                    setExportMenuOpen(false);
+                  }}
+                >
+                  <FileJson size={13} />
+                  <span>Format JSON</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* New Task Button */}
           {canManageTasks && (
             <button
@@ -329,6 +423,17 @@ export default function ProjectDetailPage() {
           <option value="haute">Priorité Haute</option>
           <option value="critique">Priorité Critique</option>
         </select>
+
+        {/* Mes tâches quick filter */}
+        <button
+          className={`btn btn-sm ${onlyMyTasks ? "btn-primary" : "btn-secondary"}`}
+          onClick={() => setOnlyMyTasks(!onlyMyTasks)}
+          title="Afficher uniquement les tâches qui me sont assignées"
+          style={{ height: 33, fontSize: 12.5 }}
+        >
+          <UserCheck size={13} />
+          <span>Mes tâches</span>
+        </button>
 
         {/* Mini stats ribbon */}
         <div className="board-quick-stats">

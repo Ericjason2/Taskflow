@@ -68,7 +68,7 @@ exports.updateProfile = async (req, res) => {
     const updates = {};
     if (nom) updates.nom = nom;
     if (bio !== undefined) updates.bio = bio;
-    if (avatar) updates.avatar = avatar;
+    if (avatar !== undefined) updates.avatar = avatar ? avatar.trim() : null;
     await req.user.update(updates);
     res.json({ success: true, message: "Profil mis à jour", user: req.user });
   } catch (err) {

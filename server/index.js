@@ -12,6 +12,7 @@ const { sequelize } = require("./models/associations");
 const authRoutes = require("./routes/auth");
 const projectRoutes = require("./routes/projects");
 const taskRoutes = require("./routes/tasks");
+const notificationRoutes = require("./routes/notifications");
 const { errorHandler, notFound } = require("./middleware/error");
 
 const app = express();
@@ -75,6 +76,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/projects/:projet_id/tasks", taskRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) =>
@@ -98,6 +100,10 @@ io.on("connection", (socket) => {
     socket.leave(`project_${projectId}`);
   });
 
+  socket.on("join_user", (userId) => {
+    socket.join(`user_${userId}`);
+  });
+
   socket.on("task_update", (data) => {
     socket.to(`project_${data.projectId}`).emit("task_updated", data);
   });
@@ -114,6 +120,29 @@ async function initializeDB() {
   try {
     await sequelize.sync({ force: false });
     console.log("🗄️  Base de données synchronisée");
+
+    // Ensure new columns exist on tasks table (SQLite & Postgres compatible)
+    try {
+      const [columns] = await sequelize.query("PRAGMA table_info(tasks);");
+      if (Array.isArray(columns) && columns.length > 0) {
+        const columnNames = columns.map((c) => c.name);
+        if (!columnNames.includes("checklists")) {
+          await sequelize.query("ALTER TABLE tasks ADD COLUMN checklists TEXT;");
+        }
+        if (!columnNames.includes("couverture")) {
+          await sequelize.query("ALTER TABLE tasks ADD COLUMN couverture VARCHAR(255);");
+        }
+        if (!columnNames.includes("pieces_jointes")) {
+          await sequelize.query("ALTER TABLE tasks ADD COLUMN pieces_jointes TEXT;");
+        }
+      }
+    } catch (_) {
+      try {
+        await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS checklists TEXT;");
+        await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS couverture VARCHAR(255);");
+        await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS pieces_jointes TEXT;");
+      } catch (_) {}
+    }
 
     // Initialize all demo accounts
     const { User } = require("./models/associations");

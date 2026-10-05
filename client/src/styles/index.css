@@ -105,6 +105,75 @@
   --sidebar-width: 260px;
 }
 
+[data-theme="dark"] {
+  --bg-base: #0b0f19;
+  --bg-surface: #111827;
+  --bg-elevated: #1f2937;
+  --bg-subtle: #1e293b;
+  --bg-muted: #334155;
+  --bg-overlay: rgba(0, 0, 0, 0.75);
+
+  --border: #1f2937;
+  --border-strong: #374151;
+  --border-accent: #1d4ed8;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+  --text-inverse: #0f172a;
+
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-subtle: rgba(59, 130, 246, 0.15);
+  --accent-glow: rgba(59, 130, 246, 0.25);
+  --accent-border: #1d4ed8;
+
+  --kanban-col-bg: #111827;
+  --kanban-col-border: #1f2937;
+  --kanban-card-bg: #1e293b;
+
+  --todo-color: #94a3b8;
+  --todo-bg: #1e293b;
+  --todo-border: #334155;
+
+  --inprogress-color: #60a5fa;
+  --inprogress-bg: rgba(37, 99, 235, 0.2);
+  --inprogress-border: #1d4ed8;
+
+  --review-color: #fbbf24;
+  --review-bg: rgba(217, 119, 6, 0.2);
+  --review-border: #78350f;
+
+  --done-color: #4ade80;
+  --done-bg: rgba(22, 163, 74, 0.2);
+  --done-border: #14532d;
+
+  --prio-basse-bg: rgba(16, 185, 129, 0.15);
+  --prio-basse: #34d399;
+  --prio-basse-border: rgba(16, 185, 129, 0.3);
+
+  --prio-moyenne-bg: rgba(14, 165, 233, 0.15);
+  --prio-moyenne: #38bdf8;
+  --prio-moyenne-border: rgba(14, 165, 233, 0.3);
+
+  --prio-haute-bg: rgba(245, 158, 11, 0.15);
+  --prio-haute: #fbbf24;
+  --prio-haute-border: rgba(245, 158, 11, 0.3);
+
+  --prio-critique-bg: rgba(239, 68, 68, 0.15);
+  --prio-critique: #f87171;
+  --prio-critique-border: rgba(239, 68, 68, 0.3);
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+  --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
 *,
 *::before,
 *::after {
@@ -276,7 +345,7 @@ select {
 }
 
 .btn-secondary {
-  background: #ffffff;
+  background: var(--bg-surface);
   color: var(--text-primary);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-xs);
@@ -383,7 +452,7 @@ select {
 .form-select {
   width: 100%;
   padding: 9px 13px;
-  background: #ffffff;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -546,7 +615,7 @@ select {
 }
 
 .modal {
-  background: #ffffff;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   padding: 24px;
@@ -590,7 +659,7 @@ select {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  background: #ffffff;
+  background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 6px;
@@ -635,7 +704,7 @@ select {
 .tabs {
   display: inline-flex;
   gap: 4px;
-  background: #f1f5f9;
+  background: var(--bg-subtle);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 3px;
@@ -661,7 +730,7 @@ select {
 }
 
 .tab.active {
-  background: #ffffff;
+  background: var(--bg-surface);
   color: var(--text-primary);
   box-shadow: var(--shadow-xs);
   font-weight: 600;

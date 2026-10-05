@@ -32,4 +32,16 @@ const Activity = sequelize.define('Activity', {
   },
 }, { tableName: 'activities', timestamps: true });
 
-module.exports = { Comment, ProjectMember, Activity };
+const Notification = sequelize.define('Notification', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  user_id: { type: DataTypes.INTEGER, allowNull: false },
+  expediteur_id: { type: DataTypes.INTEGER, defaultValue: null },
+  projet_id: { type: DataTypes.INTEGER, defaultValue: null },
+  tache_id: { type: DataTypes.INTEGER, defaultValue: null },
+  type: { type: DataTypes.STRING(50), defaultValue: 'task_assigned' },
+  titre: { type: DataTypes.STRING(255), allowNull: false },
+  message: { type: DataTypes.TEXT, allowNull: false },
+  lu: { type: DataTypes.BOOLEAN, defaultValue: false },
+}, { tableName: 'notifications', timestamps: true });
+
+module.exports = { Comment, ProjectMember, Activity, Notification };

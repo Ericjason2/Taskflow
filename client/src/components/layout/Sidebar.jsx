@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import useProjectStore from "../../store/projectStore";
+import NotificationDropdown from "../common/NotificationDropdown";
+import ThemeToggle from "../common/ThemeToggle";
 import toast from "react-hot-toast";
 
 const navItems = [
@@ -56,6 +58,11 @@ export default function Sidebar() {
             <span className="brand-badge">Workspace</span>
           </div>
         </Link>
+
+        <div className="sidebar-header-actions">
+          <NotificationDropdown />
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Main Navigation */}
@@ -154,7 +161,7 @@ export default function Sidebar() {
           top: 0;
           bottom: 0;
           width: var(--sidebar-width);
-          background: #ffffff;
+          background: var(--bg-surface);
           border-right: 1px solid var(--border);
           display: flex;
           flex-direction: column;
@@ -162,14 +169,25 @@ export default function Sidebar() {
         }
 
         .sidebar-header {
-          padding: 18px 16px;
+          padding: 16px 14px;
           border-bottom: 1px solid var(--border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+        }
+
+        .sidebar-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 5px;
         }
 
         .sidebar-brand {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 9px;
+          min-width: 0;
         }
 
         .brand-icon {
@@ -341,7 +359,7 @@ export default function Sidebar() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: #fafafa;
+          background: var(--bg-subtle);
         }
 
         .user-profile {

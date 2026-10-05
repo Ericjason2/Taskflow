@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { X, Tag as TagIcon, CheckSquare, Plus, Paperclip, Palette, Check } from "lucide-react";
+import { X, Tag as TagIcon, CheckSquare, Plus, Paperclip, Palette, Check, Users } from "lucide-react";
+import UserAvatar from "../common/UserAvatar";
 
 const COVER_COLORS = [
   { label: "Aucune", value: "" },
@@ -11,6 +12,24 @@ const COVER_COLORS = [
   { label: "Violet", value: "#8b5cf6" },
   { label: "Ardoise", value: "#475569" },
 ];
+
+const getInitialAssignees = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data.assignes) && data.assignes.length > 0) {
+    return data.assignes.map((id) => parseInt(id, 10)).filter(Boolean);
+  }
+  if (Array.isArray(data.assignes_details) && data.assignes_details.length > 0) {
+    return data.assignes_details.map((u) => u.id).filter(Boolean);
+  }
+  if (data.assigne_a) {
+    const parsed = parseInt(data.assigne_a, 10);
+    return parsed ? [parsed] : [];
+  }
+  if (data.assigne?.id) {
+    return [data.assigne.id];
+  }
+  return [];
+};
 
 export default function TaskModal({
   open,
@@ -31,6 +50,7 @@ export default function TaskModal({
     description: "",
     statut: "todo",
     priorite: "moyenne",
+    assignes: [],
     assigne_a: "",
     echeance: "",
     tags: [],
@@ -47,12 +67,14 @@ export default function TaskModal({
 
   useEffect(() => {
     if (initialData) {
+      const initialAssignees = getInitialAssignees(initialData);
       setForm({
         titre: initialData.titre || "",
         description: initialData.description || "",
         statut: initialData.statut || "todo",
         priorite: initialData.priorite || "moyenne",
-        assigne_a: initialData.assigne_a || initialData.assigne?.id || "",
+        assignes: initialAssignees,
+        assigne_a: initialAssignees[0] || "",
         echeance: initialData.echeance || "",
         tags: initialData.tags || [],
         checklists: initialData.checklists || [],
@@ -66,6 +88,7 @@ export default function TaskModal({
         description: "",
         statut: "todo",
         priorite: "moyenne",
+        assignes: [],
         assigne_a: "",
         echeance: "",
         tags: [],
@@ -91,12 +114,45 @@ export default function TaskModal({
     return Object.keys(e).length === 0;
   };
 
+  const toggleAssignee = (memberId) => {
+    const id = parseInt(memberId, 10);
+    setForm((f) => {
+      const exists = f.assignes.includes(id);
+      const nextAssignes = exists
+        ? f.assignes.filter((x) => x !== id)
+        : [...f.assignes, id];
+      return {
+        ...f,
+        assignes: nextAssignes,
+        assigne_a: nextAssignes.length > 0 ? nextAssignes[0] : "",
+      };
+    });
+  };
+
+  const selectAllAssignees = () => {
+    const allIds = memberList.map((m) => m.id);
+    setForm((f) => ({
+      ...f,
+      assignes: allIds,
+      assigne_a: allIds[0] || "",
+    }));
+  };
+
+  const clearAllAssignees = () => {
+    setForm((f) => ({
+      ...f,
+      assignes: [],
+      assigne_a: "",
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
       onSubmit({
         ...form,
-        assigne_a: form.assigne_a ? parseInt(form.assigne_a, 10) : null,
+        assignes: form.assignes,
+        assigne_a: form.assignes.length > 0 ? form.assignes[0] : null,
       });
     }
   };
@@ -250,12 +306,12 @@ export default function TaskModal({
               />
             </div>
 
-            {/* Status & Priority */}
+            {/* Status, Priority & Due Date */}
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 16,
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: 14,
               }}
             >
               <div className="form-group">
@@ -284,40 +340,6 @@ export default function TaskModal({
                   <option value="critique">Critique</option>
                 </select>
               </div>
-            </div>
-
-            {/* Assignee & Due Date */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 16,
-              }}
-            >
-              <div className="form-group">
-                <label className="form-label">Membre assigné</label>
-                <select
-                  className="form-select"
-                  value={form.assigne_a || ""}
-                  onChange={set("assigne_a")}
-                >
-                  <option value="">Non assigné (Libre)</option>
-                  {memberList.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.nom} {m.email ? `(${m.email})` : ""}
-                    </option>
-                  ))}
-                </select>
-                {memberList.length === 0 ? (
-                  <span style={{ display: "block", marginTop: 5, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.35 }}>
-                    Aucun collaborateur invité sur ce tableau. Utilisez le bouton "Inviter" du tableau pour en ajouter.
-                  </span>
-                ) : (
-                  <span style={{ display: "block", marginTop: 5, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.35 }}>
-                    Collaborateurs du projet (excepté vous-même).
-                  </span>
-                )}
-              </div>
               <div className="form-group">
                 <label className="form-label">Date d'échéance</label>
                 <input
@@ -327,6 +349,187 @@ export default function TaskModal({
                   onChange={set("echeance")}
                 />
               </div>
+            </div>
+
+            {/* Multi-Assignee Collaborators Section */}
+            <div className="form-group" style={{ marginBottom: 18 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <label
+                  className="form-label"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    margin: 0,
+                  }}
+                >
+                  <Users size={14} color="var(--accent)" />
+                  <span>
+                    Membres assignés{" "}
+                    {form.assignes.length > 0 && (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          background: "var(--accent-subtle)",
+                          color: "var(--accent)",
+                          padding: "1px 7px",
+                          borderRadius: "9999px",
+                          marginLeft: 4,
+                        }}
+                      >
+                        {form.assignes.length}
+                      </span>
+                    )}
+                  </span>
+                </label>
+                {memberList.length > 1 && (
+                  <div style={{ display: "flex", gap: 10, fontSize: 11 }}>
+                    <button
+                      type="button"
+                      onClick={selectAllAssignees}
+                      className="btn-link"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--accent)",
+                        cursor: "pointer",
+                        padding: 0,
+                        fontWeight: 600,
+                      }}
+                    >
+                      Tout assigner
+                    </button>
+                    {form.assignes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearAllAssignees}
+                        className="btn-link"
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--text-muted)",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      >
+                        Retirer tous
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {memberList.length === 0 ? (
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    background: "var(--bg-subtle)",
+                    borderRadius: "var(--radius-md)",
+                    fontSize: 12,
+                    color: "var(--text-muted)",
+                    border: "1px dashed var(--border)",
+                  }}
+                >
+                  Aucun collaborateur invité sur ce tableau. Utilisez le bouton "Inviter" du tableau pour en ajouter.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                    gap: 8,
+                  }}
+                >
+                  {memberList.map((m) => {
+                    const isSelected = form.assignes.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => toggleAssignee(m.id)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "7px 10px",
+                          borderRadius: "var(--radius-md)",
+                          border: `1.5px solid ${
+                            isSelected ? "var(--accent)" : "var(--border)"
+                          }`,
+                          background: isSelected
+                            ? "var(--accent-subtle)"
+                            : "var(--bg-card)",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          transition: "all 0.15s ease",
+                          boxShadow: isSelected
+                            ? "0 0 0 2px rgba(59, 130, 246, 0.18)"
+                            : "none",
+                        }}
+                        title={m.email ? `${m.nom} (${m.email})` : m.nom}
+                      >
+                        <UserAvatar user={m} size="xs" />
+                        <span
+                          style={{
+                            flex: 1,
+                            fontSize: 12,
+                            fontWeight: isSelected ? 600 : 500,
+                            color: isSelected
+                              ? "var(--accent)"
+                              : "var(--text-primary)",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {m.nom}
+                        </span>
+                        <div
+                          style={{
+                            width: 16,
+                            height: 16,
+                            borderRadius: 4,
+                            border: `1.5px solid ${
+                              isSelected ? "var(--accent)" : "var(--border)"
+                            }`,
+                            background: isSelected
+                              ? "var(--accent)"
+                              : "transparent",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isSelected && <Check size={11} color="#ffffff" strokeWidth={3} />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {memberList.length > 0 && (
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: 6,
+                    fontSize: 11,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {form.assignes.length === 0
+                    ? "Aucun membre assigné (Tâche libre)"
+                    : `${form.assignes.length} collaborateur${form.assignes.length > 1 ? "s" : ""} assigné${form.assignes.length > 1 ? "s" : ""}`}
+                </span>
+              )}
             </div>
 
             {/* Cover Color Picker */}

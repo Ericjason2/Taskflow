@@ -68,11 +68,20 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
     task.echeance &&
     new Date(task.echeance) < new Date() &&
     task.statut !== "done";
-  const isDone = task.statut === "done";
+  const isAssignee =
+    task.assigne_a === currentUserId ||
+    (Array.isArray(task.assignes) && task.assignes.includes(currentUserId)) ||
+    (Array.isArray(task.assignes_details) && task.assignes_details.some((u) => u.id === currentUserId));
   const canModify =
-    isCreator || task.cree_par === currentUserId || task.assigne_a === currentUserId;
+    isCreator || task.cree_par === currentUserId || isAssignee;
 
   const prio = PRIORITE_STYLES[task.priorite] || PRIORITE_STYLES.moyenne;
+  const assigneesList =
+    Array.isArray(task.assignes_details) && task.assignes_details.length > 0
+      ? task.assignes_details
+      : task.assigne
+      ? [task.assigne]
+      : [];
 
   return (
     <Draggable draggableId={String(task.id)} index={index}>
@@ -251,8 +260,32 @@ function TaskCard({ task, index, onView, onEdit, onDelete, currentUserId, isCrea
             </div>
 
             <div className="card-assignee-right">
-              {task.assigne ? (
-                <UserAvatar user={task.assigne} size="xs" title={`Assigné à ${task.assigne.nom}`} />
+              {assigneesList.length > 1 ? (
+                <div
+                  className="avatar-stack"
+                  title={`Assigné à : ${assigneesList.map((u) => u.nom).join(", ")}`}
+                >
+                  {assigneesList.slice(0, 3).map((u, i) => (
+                    <div
+                      key={u.id || i}
+                      className="avatar-stack-item"
+                      style={{ zIndex: 5 - i }}
+                    >
+                      <UserAvatar user={u} size="xs" />
+                    </div>
+                  ))}
+                  {assigneesList.length > 3 && (
+                    <span className="avatar-stack-more">
+                      +{assigneesList.length - 3}
+                    </span>
+                  )}
+                </div>
+              ) : assigneesList.length === 1 ? (
+                <UserAvatar
+                  user={assigneesList[0]}
+                  size="xs"
+                  title={`Assigné à ${assigneesList[0].nom}`}
+                />
               ) : (
                 <span className="unassigned-hint" title="Non assigné">
                   Libre
@@ -681,6 +714,39 @@ export default function KanbanBoard({
         .card-assignee-right {
           display: flex;
           align-items: center;
+        }
+
+        .avatar-stack {
+          display: flex;
+          align-items: center;
+        }
+
+        .avatar-stack-item {
+          margin-left: -7px;
+          border-radius: 50%;
+          box-shadow: 0 0 0 1.5px var(--bg-card);
+          transition: transform 0.15s ease;
+        }
+
+        .avatar-stack-item:first-child {
+          margin-left: 0;
+        }
+
+        .avatar-stack-item:hover {
+          transform: translateY(-2px) scale(1.1);
+          z-index: 10 !important;
+        }
+
+        .avatar-stack-more {
+          font-size: 10px;
+          font-weight: 700;
+          color: var(--accent);
+          background: var(--accent-subtle);
+          margin-left: -5px;
+          border-radius: 9999px;
+          padding: 1px 5px;
+          box-shadow: 0 0 0 1.5px var(--bg-card);
+          z-index: 1;
         }
 
         .unassigned-hint {

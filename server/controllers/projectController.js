@@ -390,7 +390,11 @@ exports.getStats = async (req, res) => {
     const tasks = await Task.findAll({
       where: { projet_id: { [Op.in]: projectIds } },
     });
-    const myTasks = tasks.filter((t) => t.assigne_a === userId);
+    const myTasks = tasks.filter((t) => {
+      if (t.assigne_a === userId) return true;
+      if (Array.isArray(t.assignes) && t.assignes.includes(userId)) return true;
+      return false;
+    });
     const stats = {
       total_projets: projects.length,
       projets_actifs: projects.filter((p) => p.statut === "actif").length,

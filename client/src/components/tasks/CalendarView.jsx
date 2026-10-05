@@ -182,9 +182,25 @@ export default function CalendarView({
                         }}
                       >
                         <span className="cal-task-title">{t.titre}</span>
-                        {t.assigne && (
+                        {Array.isArray(t.assignes_details) && t.assignes_details.length > 1 ? (
+                          <div style={{ display: "flex", alignItems: "center" }}>
+                            {t.assignes_details.slice(0, 2).map((u, i) => (
+                              <div
+                                key={u.id || i}
+                                style={{
+                                  marginLeft: i > 0 ? -6 : 0,
+                                  zIndex: 2 - i,
+                                  borderRadius: "50%",
+                                  boxShadow: "0 0 0 1.5px var(--bg-card)",
+                                }}
+                              >
+                                <UserAvatar user={u} size="xs" />
+                              </div>
+                            ))}
+                          </div>
+                        ) : t.assigne ? (
                           <UserAvatar user={t.assigne} size="xs" />
-                        )}
+                        ) : null}
                       </div>
                     ))}
                   </div>
@@ -235,7 +251,25 @@ export default function CalendarView({
                         {STATUT_LABELS[task.statut] || task.statut}
                       </span>
                     </div>
-                    {task.assigne && <UserAvatar user={task.assigne} size="xs" />}
+                    {Array.isArray(task.assignes_details) && task.assignes_details.length > 1 ? (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        {task.assignes_details.slice(0, 2).map((u, i) => (
+                          <div
+                            key={u.id || i}
+                            style={{
+                              marginLeft: i > 0 ? -6 : 0,
+                              zIndex: 2 - i,
+                              borderRadius: "50%",
+                              boxShadow: "0 0 0 1.5px var(--bg-card)",
+                            }}
+                          >
+                            <UserAvatar user={u} size="xs" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : task.assigne ? (
+                      <UserAvatar user={task.assigne} size="xs" />
+                    ) : null}
                   </div>
                 ))
               )}

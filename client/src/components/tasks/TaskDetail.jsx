@@ -136,7 +136,19 @@ export default function TaskDetail({
               )}
 
               <div className="td-meta">
-                {task.assigne && (
+                {(Array.isArray(task.assignes_details) && task.assignes_details.length > 0) ? (
+                  <div className="td-meta-item" style={{ flexWrap: "wrap", gap: 6 }}>
+                    <User size={14} className="td-meta-icon" />
+                    {task.assignes_details.map((u) => (
+                      <div key={u.id} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        <UserAvatar user={u} size="xs" />
+                        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                          {u.nom}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : task.assigne ? (
                   <div className="td-meta-item">
                     <User size={14} className="td-meta-icon" />
                     <UserAvatar user={task.assigne} size="sm" />
@@ -144,7 +156,7 @@ export default function TaskDetail({
                       {task.assigne.nom}
                     </span>
                   </div>
-                )}
+                ) : null}
                 {task.echeance && (
                   <div className="td-meta-item">
                     <Calendar size={14} className="td-meta-icon" />

@@ -56,6 +56,10 @@ test("2.2 Authenticates admin user (creator)", async () => {
   assert.strictEqual(demoUser.email, "admin@taskflow.io");
 });
 
+let bobToken = "";
+let bobUser = null;
+let multiTaskId = null;
+
 test("2.3 Authenticates Alice (collaborator)", async () => {
   const res = await request("/auth/login", {
     method: "POST",
@@ -66,6 +70,18 @@ test("2.3 Authenticates Alice (collaborator)", async () => {
   aliceToken = res.data.token;
   aliceUser = res.data.user;
   assert.strictEqual(aliceUser.email, "alice@taskflow.io");
+});
+
+test("2.3b Authenticates Bob (collaborator)", async () => {
+  const res = await request("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email: "bob@taskflow.io", password: "membre123" }),
+  });
+  assert.strictEqual(res.status, 200, "Bob login should return 200");
+  assert.ok(res.data.token, "Should return JWT token");
+  bobToken = res.data.token;
+  bobUser = res.data.user;
+  assert.strictEqual(bobUser.email, "bob@taskflow.io");
 });
 
 test("2.4 Verifies current user identity via /auth/me", async () => {
@@ -101,7 +117,19 @@ test("3.2 Adds Alice as collaborator to the project", async () => {
       role: "editor",
     }),
   });
-  assert.strictEqual(res.status, 200, "Adding member should return 200");
+  assert.strictEqual(res.status, 200, "Adding Alice should return 200");
+});
+
+test("3.2b Adds Bob as collaborator to the project", async () => {
+  const res = await request(`/projects/${testProjectId}/members`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${demoToken}` },
+    body: JSON.stringify({
+      user_id: bobUser.id,
+      role: "editor",
+    }),
+  });
+  assert.strictEqual(res.status, 200, "Adding Bob should return 200");
 });
 
 test("4.1 Self-assignment guard: Creator cannot assign task to self", async () => {
@@ -119,6 +147,46 @@ test("4.1 Self-assignment guard: Creator cannot assign task to self", async () =
     /pas à vous-même|collaborateur ajouté/i,
     "Error message should mention self-assignment restriction"
   );
+});
+
+test("4.1b Multi-self-assignment guard: Creator cannot include self in assignes array", async () => {
+  const res = await request(`/projects/${testProjectId}/tasks`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${demoToken}` },
+    body: JSON.stringify({
+      titre: "Tâche multi-assignée avec soi-même",
+      assignes: [aliceUser.id, demoUser.id],
+    }),
+  });
+  assert.strictEqual(res.status, 400, "Multi self assignment should be forbidden with 400");
+  assert.match(
+    res.data.message,
+    /pas à vous-même|collaborateur ajouté/i,
+    "Error message should mention self-assignment restriction"
+  );
+});
+
+test("4.1c Multi-assignee: Creates task assigned to both Alice and Bob", async () => {
+  const res = await request(`/projects/${testProjectId}/tasks`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${demoToken}` },
+    body: JSON.stringify({
+      titre: "Feature Multi-Assignation",
+      description: "Travail collaboratif entre Alice et Bob",
+      priorite: "haute",
+      statut: "todo",
+      assignes: [aliceUser.id, bobUser.id],
+    }),
+  });
+  assert.strictEqual(res.status, 201, "Multi-assignee task creation should return 201");
+  multiTaskId = res.data.data.id;
+  assert.ok(Array.isArray(res.data.data.assignes), "assignes should be an array");
+  assert.strictEqual(res.data.data.assignes.length, 2, "Should have 2 assignees");
+  assert.ok(res.data.data.assignes.includes(aliceUser.id));
+  assert.ok(res.data.data.assignes.includes(bobUser.id));
+  assert.strictEqual(res.data.data.assigne_a, aliceUser.id, "assigne_a should sync to first assignee");
+  assert.ok(Array.isArray(res.data.data.assignes_details), "assignes_details should be populated");
+  assert.strictEqual(res.data.data.assignes_details.length, 2, "assignes_details should contain 2 user objects");
 });
 
 test("4.2 Creates task with Cover, Checklist, Attachments & Assigns to Alice", async () => {
@@ -214,10 +282,22 @@ test("5.1 Alice fetches notifications and finds assignment notification", async 
   assert.ok(res.data.unreadCount > 0, "Unread count should be > 0");
 
   const assignNotif = res.data.data.find(
-    (n) => n.tache_id === testTaskId && n.type === "task_assigned"
+    (n) => (n.tache_id === testTaskId || n.tache_id === multiTaskId) && n.type === "task_assigned"
   );
   assert.ok(assignNotif, "Alice should have received task_assigned notification");
   aliceNotificationId = assignNotif.id;
+});
+
+test("5.1b Bob fetches notifications and finds assignment notification for multi-assigned task", async () => {
+  const res = await request("/notifications", {
+    headers: { Authorization: `Bearer ${bobToken}` },
+  });
+  assert.strictEqual(res.status, 200, "Bob fetching notifications should return 200");
+  assert.ok(Array.isArray(res.data.data));
+  const bobAssignNotif = res.data.data.find(
+    (n) => n.tache_id === multiTaskId && n.type === "task_assigned"
+  );
+  assert.ok(bobAssignNotif, "Bob should have received task_assigned notification for multiTaskId");
 });
 
 test("5.2 Alice marks notification as read", async () => {
@@ -238,12 +318,21 @@ test("5.3 Alice marks all notifications as read", async () => {
   assert.strictEqual(res.data.success, true);
 });
 
-test("6.1 Deletes test task", async () => {
-  const res = await request(`/projects/${testProjectId}/tasks/${testTaskId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${demoToken}` },
-  });
-  assert.strictEqual(res.status, 200, "Task deletion should return 200");
+test("6.1 Deletes test tasks", async () => {
+  if (testTaskId) {
+    const res = await request(`/projects/${testProjectId}/tasks/${testTaskId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${demoToken}` },
+    });
+    assert.strictEqual(res.status, 200, "Task deletion should return 200");
+  }
+  if (multiTaskId) {
+    const res2 = await request(`/projects/${testProjectId}/tasks/${multiTaskId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${demoToken}` },
+    });
+    assert.strictEqual(res2.status, 200, "Multi task deletion should return 200");
+  }
 });
 
 test("6.2 Deletes test project", async () => {

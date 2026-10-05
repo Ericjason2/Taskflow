@@ -302,9 +302,40 @@ export default function TaskDetailModal({
                   fontWeight: 600,
                 }}
               >
-                Membre assigné
+                {Array.isArray(task.assignes_details) && task.assignes_details.length > 1
+                  ? `Membres assignés (${task.assignes_details.length})`
+                  : "Membre assigné"}
               </p>
-              {task.assigne ? (
+              {(Array.isArray(task.assignes_details) && task.assignes_details.length > 0) ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {task.assignes_details.map((u) => (
+                    <div
+                      key={u.id}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 7,
+                        background: "var(--bg-card)",
+                        padding: "3px 10px 3px 4px",
+                        borderRadius: "9999px",
+                        border: "1px solid var(--border)",
+                      }}
+                      title={u.email || u.nom}
+                    >
+                      <UserAvatar user={u} size="xs" />
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {u.nom}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : task.assigne ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <UserAvatar user={task.assigne} size="sm" />
                   <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>

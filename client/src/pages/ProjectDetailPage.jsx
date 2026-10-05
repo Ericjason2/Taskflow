@@ -119,7 +119,11 @@ export default function ProjectDetailPage() {
     const matchSearch =
       !search || t.titre.toLowerCase().includes(search.toLowerCase());
     const matchPriority = !filterPriority || t.priorite === filterPriority;
-    const matchMyTasks = !onlyMyTasks || t.assigne_a === user?.id;
+    const matchMyTasks =
+      !onlyMyTasks ||
+      t.assigne_a === user?.id ||
+      (Array.isArray(t.assignes) && t.assignes.includes(user?.id)) ||
+      (Array.isArray(t.assignes_details) && t.assignes_details.some((u) => u.id === user?.id));
     return matchSearch && matchPriority && matchMyTasks;
   });
 
@@ -143,7 +147,7 @@ export default function ProjectDetailPage() {
       `"${(t.titre || "").replace(/"/g, '""')}"`,
       t.statut,
       t.priorite,
-      `"${(t.assigne?.nom || "Non assigné").replace(/"/g, '""')}"`,
+      `"${((Array.isArray(t.assignes_details) && t.assignes_details.length > 0) ? t.assignes_details.map((u) => u.nom).join(", ") : (t.assigne?.nom || "Non assigné")).replace(/"/g, '""')}"`,
       t.echeance || "",
       (t.checklists || []).filter((c) => c.termine).length,
       (t.checklists || []).length,
@@ -584,7 +588,31 @@ export default function ProjectDetailPage() {
                   </div>
 
                   <div className="col-task-assignee">
-                    {task.assigne ? (
+                    {Array.isArray(task.assignes_details) && task.assignes_details.length > 1 ? (
+                      <div
+                        className="assignee-cell"
+                        title={task.assignes_details.map((u) => u.nom).join(", ")}
+                      >
+                        <div style={{ display: "flex", alignItems: "center" }}>
+                          {task.assignes_details.slice(0, 2).map((u, i) => (
+                            <div
+                              key={u.id || i}
+                              style={{
+                                marginLeft: i > 0 ? -6 : 0,
+                                zIndex: 2 - i,
+                                borderRadius: "50%",
+                                boxShadow: "0 0 0 1.5px var(--bg-card)",
+                              }}
+                            >
+                              <UserAvatar user={u} size="xs" />
+                            </div>
+                          ))}
+                        </div>
+                        <span>
+                          {task.assignes_details[0].nom.split(" ")[0]} +{task.assignes_details.length - 1}
+                        </span>
+                      </div>
+                    ) : task.assigne ? (
                       <div className="assignee-cell">
                         <UserAvatar user={task.assigne} size="xs" />
                         <span>{task.assigne.nom.split(" ")[0]}</span>

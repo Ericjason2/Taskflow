@@ -141,8 +141,15 @@ exports.deleteUser = async (req, res) => {
     // 1. Supprimer les commentaires créés par cet utilisateur
     await Comment.destroy({ where: { auteur_id: userId } });
 
-    // 2. Retirer les tâches assignées à cet utilisateur (set NULL)
+    // 2. Retirer les tâches assignées à cet utilisateur (set NULL & clean assignes array)
     await Task.update({ assigne_a: null }, { where: { assigne_a: userId } });
+    const allTasksWithAssignees = await Task.findAll();
+    for (const t of allTasksWithAssignees) {
+      if (Array.isArray(t.assignes) && t.assignes.includes(userId)) {
+        t.assignes = t.assignes.filter((id) => id !== userId);
+        await t.save();
+      }
+    }
 
     // 3. Supprimer les tâches créées par cet utilisateur (dans les projets qu'il crée)
     const projectsCreatedByUser = await Project.findAll({

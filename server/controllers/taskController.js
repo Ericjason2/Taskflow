@@ -109,7 +109,10 @@ const applyBoardAutomations = async ({
 
   // 3. rule_auto_start_on_assign (Prise en charge automatique)
   if (hasRule("rule_auto_start_on_assign") || hasRule("auto_assign_start")) {
-    if (changes.assigne_a && task.statut === "todo") {
+    const hasAssigneeChange =
+      changes.assigne_a ||
+      (Array.isArray(changes.assignes) && changes.assignes.length > 0);
+    if (hasAssigneeChange && task.statut === "todo") {
       task.statut = "in_progress";
       task.changed("statut", true);
       needsSave = true;
@@ -136,6 +139,66 @@ const applyBoardAutomations = async ({
   return task;
 };
 
+// Helper: Normalize assignees input from body (supports assignes: [id, ...] or assigne_a: id)
+const parseAssignees = (body) => {
+  let targetAssignees = [];
+  if (Array.isArray(body.assignes)) {
+    targetAssignees = body.assignes
+      .map((id) => parseInt(id, 10))
+      .filter((id) => !isNaN(id) && id > 0);
+  } else if (body.assigne_a !== undefined) {
+    const parsed = body.assigne_a ? parseInt(body.assigne_a, 10) : null;
+    if (parsed && !isNaN(parsed) && parsed > 0) {
+      targetAssignees = [parsed];
+    }
+  }
+  return [...new Set(targetAssignees)];
+};
+
+// Helper: Populate assignes_details with User records on task(s)
+const populateAssigneesDetails = async (tasks) => {
+  if (!tasks) return tasks;
+  const isArray = Array.isArray(tasks);
+  const taskList = isArray ? tasks : [tasks];
+  if (taskList.length === 0) return tasks;
+
+  const allUserIds = new Set();
+  for (const t of taskList) {
+    if (Array.isArray(t.assignes)) {
+      t.assignes.forEach((id) => allUserIds.add(id));
+    }
+    if (t.assigne_a) {
+      allUserIds.add(t.assigne_a);
+    }
+  }
+
+  if (allUserIds.size === 0) {
+    for (const t of taskList) {
+      t.dataValues.assignes_details = [];
+    }
+    return tasks;
+  }
+
+  const users = await User.findAll({
+    where: { id: { [Op.in]: Array.from(allUserIds) } },
+    attributes: ["id", "nom", "email", "avatar"],
+  });
+
+  const userMap = new Map(users.map((u) => [u.id, u.toJSON()]));
+
+  for (const t of taskList) {
+    const ids =
+      Array.isArray(t.assignes) && t.assignes.length > 0
+        ? t.assignes
+        : t.assigne_a
+        ? [t.assigne_a]
+        : [];
+    t.dataValues.assignes_details = ids.map((id) => userMap.get(id)).filter(Boolean);
+  }
+
+  return tasks;
+};
+
 exports.getTasks = async (req, res) => {
   try {
     const { projet_id } = req.params;
@@ -149,7 +212,13 @@ exports.getTasks = async (req, res) => {
     } = req.query;
     const where = { projet_id };
     if (statut) where.statut = statut;
-    if (assigne_a) where.assigne_a = assigne_a;
+    if (assigne_a) {
+      const aId = parseInt(assigne_a, 10);
+      where[Op.or] = [
+        { assigne_a: aId },
+        { assignes: { [Op.like]: `%${aId}%` } },
+      ];
+    }
     if (priorite) where.priorite = priorite;
     if (search)
       where[Op.or] = [
@@ -169,6 +238,7 @@ exports.getTasks = async (req, res) => {
       ],
       order: [[sort, order]],
     });
+    await populateAssigneesDetails(tasks);
     res.json({ success: true, data: tasks });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -183,7 +253,6 @@ exports.createTask = async (req, res) => {
       description,
       statut,
       priorite,
-      assigne_a,
       echeance,
       tags,
       checklists,
@@ -216,15 +285,19 @@ exports.createTask = async (req, res) => {
       });
     }
 
-    // Validation assignation : collaborateur ajouté excepté soi-même
-    let targetAssignee = assigne_a ? parseInt(assigne_a, 10) : null;
-    if (targetAssignee) {
-      if (targetAssignee === req.user.id) {
-        return res.status(400).json({
-          success: false,
-          message: "L'assignation doit être attribuée à un collaborateur ajouté, pas à vous-même",
-        });
-      }
+    // Validation assignation multi-collaborateurs : collaborateurs ajoutés excepté soi-même
+    const hasAssigneesInput =
+      req.body.assignes !== undefined || req.body.assigne_a !== undefined;
+    const targetAssignees = hasAssigneesInput ? parseAssignees(req.body) : [];
+
+    if (targetAssignees.includes(req.user.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "L'assignation doit être attribuée à un collaborateur ajouté, pas à vous-même",
+      });
+    }
+
+    for (const targetAssignee of targetAssignees) {
       const memberExists = await ProjectMember.findOne({
         where: { projet_id, user_id: targetAssignee },
       });
@@ -241,7 +314,8 @@ exports.createTask = async (req, res) => {
       description: description ? description.trim() : null,
       statut: ["todo", "in_progress", "review", "done"].includes(statut) ? statut : "todo",
       priorite: ["basse", "moyenne", "haute", "critique"].includes(priorite) ? priorite : "moyenne",
-      assigne_a: targetAssignee,
+      assigne_a: targetAssignees.length > 0 ? targetAssignees[0] : null,
+      assignes: targetAssignees,
       echeance: echeance || null,
       tags: Array.isArray(tags) ? tags : [],
       checklists: Array.isArray(checklists) ? checklists : [],
@@ -269,8 +343,8 @@ exports.createTask = async (req, res) => {
       task.id,
     );
 
-    // Notify assignee
-    if (targetAssignee) {
+    // Notify all assigned collaborators
+    for (const targetAssignee of targetAssignees) {
       await sendNotification({
         userId: targetAssignee,
         expediteurId: req.user.id,
@@ -283,6 +357,7 @@ exports.createTask = async (req, res) => {
       });
     }
 
+    await populateAssigneesDetails(full);
     res.status(201).json({ success: true, message: "Tâche créée", data: full });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -313,6 +388,7 @@ exports.getTask = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Tâche introuvable" });
+    await populateAssigneesDetails(task);
     res.json({ success: true, data: task });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -338,11 +414,14 @@ exports.updateTask = async (req, res) => {
     const isMember = await ProjectMember.findOne({
       where: { projet_id, user_id: req.user.id },
     });
+    const isAssignee =
+      task.assigne_a === req.user.id ||
+      (Array.isArray(task.assignes) && task.assignes.includes(req.user.id));
     const canModify =
       project.createur_id === req.user.id ||
       isMember ||
       task.cree_par === req.user.id ||
-      task.assigne_a === req.user.id ||
+      isAssignee ||
       req.user.role === "admin";
 
     if (!canModify) {
@@ -352,16 +431,19 @@ exports.updateTask = async (req, res) => {
       });
     }
 
-    // Validation assignation if updated
-    if (req.body.assigne_a !== undefined) {
-      const targetAssignee = req.body.assigne_a ? parseInt(req.body.assigne_a, 10) : null;
-      if (targetAssignee) {
-        if (targetAssignee === req.user.id) {
-          return res.status(400).json({
-            success: false,
-            message: "L'assignation doit être attribuée à un collaborateur ajouté, pas à vous-même",
-          });
-        }
+    // Validation assignation multi-collaborateurs if updated
+    const hasAssigneesInput =
+      req.body.assignes !== undefined || req.body.assigne_a !== undefined;
+    let targetAssignees = null;
+    if (hasAssigneesInput) {
+      targetAssignees = parseAssignees(req.body);
+      if (targetAssignees.includes(req.user.id)) {
+        return res.status(400).json({
+          success: false,
+          message: "L'assignation doit être attribuée à un collaborateur ajouté, pas à vous-même",
+        });
+      }
+      for (const targetAssignee of targetAssignees) {
         const memberExists = await ProjectMember.findOne({
           where: { projet_id, user_id: targetAssignee },
         });
@@ -372,11 +454,18 @@ exports.updateTask = async (req, res) => {
           });
         }
       }
-      req.body.assigne_a = targetAssignee;
+      req.body.assignes = targetAssignees;
+      req.body.assigne_a = targetAssignees.length > 0 ? targetAssignees[0] : null;
     }
 
     const oldStatut = task.statut;
     const oldAssignee = task.assigne_a;
+    const oldAssignees =
+      Array.isArray(task.assignes) && task.assignes.length > 0
+        ? task.assignes
+        : task.assigne_a
+        ? [task.assigne_a]
+        : [];
     const oldPriorite = task.priorite;
     await task.update(req.body);
 
@@ -394,18 +483,23 @@ exports.updateTask = async (req, res) => {
       io: req.io,
     });
 
-    // Notify newly assigned collaborator
-    if (req.body.assigne_a && req.body.assigne_a !== oldAssignee && req.body.assigne_a !== req.user.id) {
-      await sendNotification({
-        userId: req.body.assigne_a,
-        expediteurId: req.user.id,
-        projetId: task.projet_id,
-        tacheId: task.id,
-        type: "task_assigned",
-        titre: "Tâche assignée",
-        message: `${req.user.nom} vous a assigné la carte "${task.titre}"`,
-        io: req.io,
-      });
+    // Notify newly assigned collaborator(s)
+    if (targetAssignees !== null) {
+      const newlyAssigned = targetAssignees.filter(
+        (id) => !oldAssignees.includes(id) && id !== req.user.id,
+      );
+      for (const newlyId of newlyAssigned) {
+        await sendNotification({
+          userId: newlyId,
+          expediteurId: req.user.id,
+          projetId: task.projet_id,
+          tacheId: task.id,
+          type: "task_assigned",
+          titre: "Tâche assignée",
+          message: `${req.user.nom} vous a assigné la carte "${task.titre}"`,
+          io: req.io,
+        });
+      }
     }
 
     if (req.body.statut && req.body.statut !== oldStatut) {
@@ -433,6 +527,7 @@ exports.updateTask = async (req, res) => {
         { model: User, as: "createur", attributes: ["id", "nom", "avatar"] },
       ],
     });
+    await populateAssigneesDetails(full);
     res.json({ success: true, message: "Tâche mise à jour", data: full });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -491,11 +586,14 @@ exports.updateStatus = async (req, res) => {
     const isMember = await ProjectMember.findOne({
       where: { projet_id: task.projet_id, user_id: req.user.id },
     });
+    const isAssignee =
+      task.assigne_a === req.user.id ||
+      (Array.isArray(task.assignes) && task.assignes.includes(req.user.id));
     const canMove =
       project.createur_id === req.user.id ||
       isMember ||
       task.cree_par === req.user.id ||
-      task.assigne_a === req.user.id ||
+      isAssignee ||
       req.user.role === "admin";
 
     if (!canMove) {
@@ -520,6 +618,7 @@ exports.updateStatus = async (req, res) => {
       io: req.io,
     });
 
+    await populateAssigneesDetails(task);
     res.json({ success: true, message: "Statut mis à jour", data: task });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -559,10 +658,16 @@ exports.addComment = async (req, res) => {
       ],
     });
 
-    // Notify task assignee and creator
+    // Notify task assignee(s) and creator
     if (task) {
       const recipients = new Set();
-      if (task.assigne_a && task.assigne_a !== req.user.id) recipients.add(task.assigne_a);
+      if (Array.isArray(task.assignes) && task.assignes.length > 0) {
+        task.assignes.forEach((uid) => {
+          if (uid !== req.user.id) recipients.add(uid);
+        });
+      } else if (task.assigne_a && task.assigne_a !== req.user.id) {
+        recipients.add(task.assigne_a);
+      }
       if (task.cree_par && task.cree_par !== req.user.id) recipients.add(task.cree_par);
       for (const recId of recipients) {
         await sendNotification({

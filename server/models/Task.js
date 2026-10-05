@@ -9,6 +9,31 @@ const Task = sequelize.define('Task', {
   priorite: { type: DataTypes.STRING(20), defaultValue: 'moyenne' },
   projet_id: { type: DataTypes.INTEGER, allowNull: false },
   assigne_a: { type: DataTypes.INTEGER, defaultValue: null },
+  assignes: {
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
+    get() {
+      const v = this.getDataValue('assignes');
+      try {
+        const parsed = JSON.parse(v);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    },
+    set(val) {
+      let arr = [];
+      if (Array.isArray(val)) {
+        arr = val.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id) && id > 0);
+      } else if (val !== null && val !== undefined && val !== '') {
+        const parsed = parseInt(val, 10);
+        if (!isNaN(parsed) && parsed > 0) arr = [parsed];
+      }
+      arr = [...new Set(arr)];
+      this.setDataValue('assignes', JSON.stringify(arr));
+      this.setDataValue('assigne_a', arr.length > 0 ? arr[0] : null);
+    },
+  },
   cree_par: { type: DataTypes.INTEGER, allowNull: false },
   echeance: { type: DataTypes.DATEONLY, defaultValue: null },
   ordre: { type: DataTypes.INTEGER, defaultValue: 0 },

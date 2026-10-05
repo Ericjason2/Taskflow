@@ -142,6 +142,7 @@ async function initializeDB() {
         if (!names.includes("couverture")) await sequelize.query("ALTER TABLE tasks ADD COLUMN couverture VARCHAR(255);");
         if (!names.includes("pieces_jointes")) await sequelize.query("ALTER TABLE tasks ADD COLUMN pieces_jointes TEXT;");
         if (!names.includes("custom_fields")) await sequelize.query("ALTER TABLE tasks ADD COLUMN custom_fields TEXT;");
+        if (!names.includes("assignes")) await sequelize.query("ALTER TABLE tasks ADD COLUMN assignes TEXT;");
       }
       const [projCols] = await sequelize.query("PRAGMA table_info(projects);");
       if (Array.isArray(projCols) && projCols.length > 0) {
@@ -155,6 +156,7 @@ async function initializeDB() {
         await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS couverture VARCHAR(255);");
         await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS pieces_jointes TEXT;");
         await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS custom_fields TEXT;");
+        await sequelize.query("ALTER TABLE tasks ADD COLUMN IF NOT EXISTS assignes TEXT;");
         await sequelize.query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS automations TEXT;");
         await sequelize.query("ALTER TABLE projects ADD COLUMN IF NOT EXISTS custom_fields_config TEXT;");
       } catch (_) {}

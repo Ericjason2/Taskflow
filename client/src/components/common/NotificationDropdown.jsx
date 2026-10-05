@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Bell, CheckCheck, Trash2, ExternalLink, Inbox } from "lucide-react";
+import { Bell, CheckCheck, Check, Trash2, ExternalLink, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useNotificationStore from "../../store/notificationStore";
 import useAuthStore from "../../store/authStore";
@@ -117,7 +117,22 @@ export default function NotificationDropdown() {
                       })}
                     </span>
                   </div>
-                  {!notif.lu && <span className="unread-dot" />}
+                  <div className="notif-item-actions">
+                    {!notif.lu && (
+                      <button
+                        className="notif-item-read-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notif.id);
+                        }}
+                        title="Marquer comme lue"
+                        aria-label="Marquer comme lue"
+                      >
+                        <Check size={13} />
+                      </button>
+                    )}
+                    {!notif.lu && <span className="unread-dot" />}
+                  </div>
                 </div>
               ))
             )}
@@ -307,13 +322,40 @@ export default function NotificationDropdown() {
           color: var(--text-muted);
         }
 
+        .notif-item-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-shrink: 0;
+          margin-top: 4px;
+        }
+
+        .notif-item-read-btn {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          border: 1px solid var(--border);
+          background: var(--bg-surface);
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+
+        .notif-item-read-btn:hover {
+          background: var(--accent);
+          color: #ffffff;
+          border-color: var(--accent);
+        }
+
         .unread-dot {
           width: 7px;
           height: 7px;
           border-radius: 50%;
           background: var(--accent);
           flex-shrink: 0;
-          margin-top: 5px;
         }
 
         .notif-empty {

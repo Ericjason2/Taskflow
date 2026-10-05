@@ -27,6 +27,115 @@ const logActivity = async (
   } catch (_) {}
 };
 
+const applyBoardAutomations = async ({
+  task,
+  project,
+  changes = {},
+  oldValues = {},
+  user,
+  io,
+}) => {
+  const automations = Array.isArray(project.automations)
+    ? project.automations
+    : typeof project.automations === "string"
+    ? (() => {
+        try {
+          const p = JSON.parse(project.automations);
+          return Array.isArray(p) ? p : [];
+        } catch {
+          return [];
+        }
+      })()
+    : [];
+
+  if (automations.length === 0) return task;
+
+  const hasRule = (ruleId) =>
+    automations.includes(ruleId) ||
+    automations.includes(`rule_${ruleId}`) ||
+    automations.includes(ruleId.replace("rule_", ""));
+
+  let needsSave = false;
+
+  // 1. rule_auto_done (Clôture automatique bidirectionnelle)
+  if (hasRule("rule_auto_done") || hasRule("auto_done_checklists")) {
+    // Si la tâche passe au statut 'done' -> marquer toutes ses sous-tâches comme terminées
+    if (changes.statut === "done" && Array.isArray(task.checklists) && task.checklists.length > 0) {
+      const allDone = task.checklists.every((c) => c.termine && c.done);
+      if (!allDone) {
+        task.checklists = task.checklists.map((c) => ({
+          ...c,
+          termine: true,
+          done: true,
+        }));
+        task.changed("checklists", true);
+        needsSave = true;
+      }
+    }
+
+    // Si toutes les sous-tâches sont cochées -> passer automatiquement la tâche à 'done'
+    const currentChecklists = changes.checklists || task.checklists;
+    if (Array.isArray(currentChecklists) && currentChecklists.length > 0) {
+      const allChecked = currentChecklists.every((c) => c.termine || c.done);
+      if (allChecked && task.statut !== "done") {
+        task.statut = "done";
+        task.changed("statut", true);
+        needsSave = true;
+      }
+    }
+  }
+
+  // 2. rule_critical_alert (Alerte priorité critique)
+  if (hasRule("rule_critical_alert") || hasRule("auto_critical_alert")) {
+    if (changes.priorite === "critique" && oldValues?.priorite !== "critique") {
+      const members = await ProjectMember.findAll({ where: { projet_id: project.id } });
+      const recipientIds = new Set([project.createur_id, ...members.map((m) => m.user_id)]);
+      recipientIds.delete(user.id);
+
+      for (const recipientId of recipientIds) {
+        await sendNotification({
+          userId: recipientId,
+          expediteurId: user.id,
+          projetId: project.id,
+          tacheId: task.id,
+          type: "critical_alert",
+          titre: "Alerte Priorité Critique",
+          message: `La tâche "${task.titre}" a été passée en priorité critique par ${user.nom}`,
+          io,
+        });
+      }
+    }
+  }
+
+  // 3. rule_auto_start_on_assign (Prise en charge automatique)
+  if (hasRule("rule_auto_start_on_assign") || hasRule("auto_assign_start")) {
+    if (changes.assigne_a && task.statut === "todo") {
+      task.statut = "in_progress";
+      task.changed("statut", true);
+      needsSave = true;
+    }
+  }
+
+  // 4. rule_move_to_review (Contrôle qualité)
+  if (hasRule("rule_move_to_review") || hasRule("auto_checklist_review")) {
+    const currentChecklists = changes.checklists || task.checklists;
+    if (Array.isArray(currentChecklists) && currentChecklists.length > 0) {
+      const allChecked = currentChecklists.every((c) => c.termine || c.done);
+      if (allChecked && task.statut === "in_progress") {
+        task.statut = "review";
+        task.changed("statut", true);
+        needsSave = true;
+      }
+    }
+  }
+
+  if (needsSave) {
+    await task.save();
+  }
+
+  return task;
+};
+
 exports.getTasks = async (req, res) => {
   try {
     const { projet_id } = req.params;
@@ -272,38 +381,18 @@ exports.updateTask = async (req, res) => {
     await task.update(req.body);
 
     // Apply board automations
-    const automations = Array.isArray(project.automations) ? project.automations : [];
-    if (automations.length > 0) {
-      // 1. Auto-complete checklists when moved to 'done'
-      if (automations.includes("auto_done_checklists") && req.body.statut === "done" && Array.isArray(task.checklists) && task.checklists.length > 0) {
-        const completed = task.checklists.map((c) => ({ ...c, done: true }));
-        await task.update({ checklists: completed });
-      }
-
-      // 2. Alert creator when marked critical
-      if (automations.includes("auto_critical_alert") && req.body.priorite === "critique" && oldPriorite !== "critique" && req.user.id !== project.createur_id) {
-        await sendNotification({
-          userId: project.createur_id,
-          expediteurId: req.user.id,
-          projetId: project.id,
-          tacheId: task.id,
-          type: "critical_alert",
-          titre: "Alerte Priorité Critique",
-          message: `La tâche "${task.titre}" a été passée en priorité critique par ${req.user.nom}`,
-          io: req.io,
-        });
-      }
-
-      // 3. Auto-start on assignment
-      if (automations.includes("auto_assign_start") && req.body.assigne_a && task.statut === "todo") {
-        await task.update({ statut: "in_progress" });
-      }
-
-      // 4. Auto-move to review when checklist complete
-      if (automations.includes("auto_checklist_review") && Array.isArray(req.body.checklists) && req.body.checklists.length > 0 && req.body.checklists.every((c) => c.done) && task.statut === "in_progress") {
-        await task.update({ statut: "review" });
-      }
-    }
+    await applyBoardAutomations({
+      task,
+      project,
+      changes: req.body,
+      oldValues: {
+        statut: oldStatut,
+        priorite: oldPriorite,
+        assigne_a: oldAssignee,
+      },
+      user: req.user,
+      io: req.io,
+    });
 
     // Notify newly assigned collaborator
     if (req.body.assigne_a && req.body.assigne_a !== oldAssignee && req.body.assigne_a !== req.user.id) {
@@ -418,7 +507,19 @@ exports.updateStatus = async (req, res) => {
       return res.status(400).json({ success: false, message: "Statut invalide" });
     }
 
+    const oldStatut = task.statut;
     await task.update({ statut: req.body.statut });
+
+    // Apply board automations on status change
+    await applyBoardAutomations({
+      task,
+      project,
+      changes: { statut: req.body.statut },
+      oldValues: { statut: oldStatut },
+      user: req.user,
+      io: req.io,
+    });
+
     res.json({ success: true, message: "Statut mis à jour", data: task });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -429,6 +530,24 @@ exports.updateStatus = async (req, res) => {
 exports.addComment = async (req, res) => {
   try {
     const { taskId } = req.params;
+    const task = await Task.findByPk(taskId);
+    if (!task)
+      return res
+        .status(404)
+        .json({ success: false, message: "Tâche introuvable" });
+
+    // Auto-review automation check on hashtag #review
+    if (req.body.contenu && req.body.contenu.includes("#review")) {
+      const project = await Project.findByPk(task.projet_id);
+      const automations = Array.isArray(project?.automations) ? project.automations : [];
+      if (
+        automations.includes("rule_move_to_review") ||
+        automations.includes("auto_checklist_review")
+      ) {
+        await task.update({ statut: "review" });
+      }
+    }
+
     const comment = await Comment.create({
       contenu: req.body.contenu,
       tache_id: taskId,
@@ -441,7 +560,6 @@ exports.addComment = async (req, res) => {
     });
 
     // Notify task assignee and creator
-    const task = await Task.findByPk(taskId);
     if (task) {
       const recipients = new Set();
       if (task.assigne_a && task.assigne_a !== req.user.id) recipients.add(task.assigne_a);

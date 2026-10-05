@@ -170,6 +170,29 @@ test("4.3 Updates checklist item to done (interactive subtask)", async () => {
   assert.strictEqual(res.data.data.checklists[1].done, false);
 });
 
+test("4.3b Board automation rule_auto_done marks all checklists as done when task moved to done", async () => {
+  // 1. Enable rule_auto_done on project
+  await request(`/projects/${testProjectId}`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${demoToken}` },
+    body: JSON.stringify({ automations: ["rule_auto_done"] }),
+  });
+
+  // 2. Move task to done
+  const res = await request(`/projects/${testProjectId}/tasks/${testTaskId}/status`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${demoToken}` },
+    body: JSON.stringify({ statut: "done" }),
+  });
+  assert.strictEqual(res.status, 200, "Update status should return 200");
+  assert.strictEqual(res.data.data.statut, "done");
+  assert.strictEqual(
+    res.data.data.checklists.every((c) => c.termine && c.done),
+    true,
+    "All checklists must be auto-completed when task status becomes done"
+  );
+});
+
 test("4.4 Adds comment on task and dispatches notification", async () => {
   const res = await request(`/projects/${testProjectId}/tasks/${testTaskId}/comments`, {
     method: "POST",

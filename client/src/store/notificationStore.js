@@ -25,28 +25,30 @@ const useNotificationStore = create((set, get) => ({
   },
 
   markAsRead: async (id) => {
+    // Optimistic instant UI update
+    set((s) => {
+      const notif = s.notifications.find((n) => n.id === id);
+      const wasUnread = notif && !notif.lu;
+      return {
+        notifications: s.notifications.map((n) =>
+          n.id === id ? { ...n, lu: true } : n
+        ),
+        unreadCount: wasUnread ? Math.max(0, s.unreadCount - 1) : s.unreadCount,
+      };
+    });
     try {
       await notificationAPI.markAsRead(id);
-      set((s) => {
-        const notif = s.notifications.find((n) => n.id === id);
-        const wasUnread = notif && !notif.lu;
-        return {
-          notifications: s.notifications.map((n) =>
-            n.id === id ? { ...n, lu: true } : n
-          ),
-          unreadCount: wasUnread ? Math.max(0, s.unreadCount - 1) : s.unreadCount,
-        };
-      });
     } catch (_) {}
   },
 
   markAllAsRead: async () => {
+    // Optimistic instant UI update
+    set((s) => ({
+      notifications: s.notifications.map((n) => ({ ...n, lu: true })),
+      unreadCount: 0,
+    }));
     try {
       await notificationAPI.markAllAsRead();
-      set((s) => ({
-        notifications: s.notifications.map((n) => ({ ...n, lu: true })),
-        unreadCount: 0,
-      }));
     } catch (_) {}
   },
 

@@ -95,8 +95,36 @@ const useProjectStore = create((set, get) => ({
   },
 
   updateTaskStatus: async (projectId, taskId, statut) => {
-    await taskAPI.updateStatus(projectId, taskId, statut);
-    set((s) => ({ tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, statut } : t)) }));
+    const { currentProject } = get();
+    const automations = Array.isArray(currentProject?.automations)
+      ? currentProject.automations
+      : [];
+    const hasAutoDone =
+      automations.includes("rule_auto_done") ||
+      automations.includes("auto_done_checklists");
+
+    // Optimistic instant UI update
+    set((s) => ({
+      tasks: s.tasks.map((t) => {
+        if (t.id !== taskId) return t;
+        const checklists =
+          statut === "done" && hasAutoDone && Array.isArray(t.checklists)
+            ? t.checklists.map((c) => ({ ...c, termine: true, done: true }))
+            : t.checklists;
+        return { ...t, statut, checklists };
+      }),
+    }));
+
+    try {
+      const { data } = await taskAPI.updateStatus(projectId, taskId, statut);
+      if (data?.data) {
+        set((s) => ({
+          tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, ...data.data } : t)),
+        }));
+      }
+    } catch (err) {
+      throw err;
+    }
   },
 
   deleteTask: async (projectId, taskId) => {

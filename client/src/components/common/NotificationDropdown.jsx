@@ -5,6 +5,7 @@ import {
   Check,
   Trash2,
   Inbox,
+  ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useNotificationStore from "../../store/notificationStore";
@@ -625,6 +626,24 @@ export default function NotificationDropdown() {
           color: var(--text-muted);
           font-size: 13px;
           text-align: center;
+        }
+
+        @media (max-width: 640px) {
+          .notif-popover {
+            position: fixed;
+            top: 58px;
+            left: 10px;
+            right: 10px;
+            width: auto;
+            max-width: calc(100vw - 20px);
+            max-height: calc(100vh - 75px);
+            display: flex;
+            flex-direction: column;
+          }
+
+          .notif-list {
+            max-height: calc(100vh - 180px);
+          }
         }
       `}</style>
     </div>

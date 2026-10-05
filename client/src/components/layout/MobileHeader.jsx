@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { Menu, X, Kanban, LayoutDashboard, User, LogOut, Plus, ChevronRight } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
@@ -13,6 +13,23 @@ export default function MobileHeader() {
   const { user, logout } = useAuthStore();
   const { projects } = useProjectStore();
   const navigate = useNavigate();
+
+  // Lock background scroll & handle escape when menu is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') setOpen(false);
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = '';
+    }
+  }, [open]);
 
   const handleLogout = () => {
     logout();
@@ -80,22 +97,6 @@ export default function MobileHeader() {
                 >
                   <Icon size={18} className="mobile-icon" />
                   <span>{label}</span>
-                  {badge > 0 && (
-                    <span
-                      style={{
-                        background: '#ef4444',
-                        color: '#fff',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        padding: '1px 6px',
-                        borderRadius: 9999,
-                        marginLeft: 'auto',
-                        marginRight: 6,
-                      }}
-                    >
-                      {badge > 9 ? '9+' : badge}
-                    </span>
-                  )}
                   <ChevronRight size={14} className="mobile-chevron" />
                 </NavLink>
               ))}
